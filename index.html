@@ -1272,6 +1272,10 @@ const _SYNC_SALT='xinyi:local:obf:1:';
 function _obf(s){
   try{ return btoa(_SYNC_SALT + s); }catch(e){ return s; }
 }
+/* ---- 云同步后端: textdb.online 免费云存储(GitHub Pages 无后端,改用公共KV服务) ---- */
+const CLOUD_BASE='https://textdb.online/';
+const CLOUD_MAX_CHARS=190000; /* 服务上限20万字符,留安全余量 */
+function cloudKey(c){ return 'xywb-'+String(c||'').trim().toLowerCase(); }
 function _deobf(s){
   try{ const d=atob(s); return d.startsWith(_SYNC_SALT)? d.slice(_SYNC_SALT.length) : s; }catch(e){ return s; }
 }
@@ -1340,9 +1344,11 @@ function applySnapshot(d){
 async function cloudPull(force){
   const code=syncCode();
   try{
-    const r=await fetch('/api/load?code='+encodeURIComponent(code));
-    const j=await r.json();
-    if(!j.ok){ setNet('on','已连接 · 云端'); return 'empty'; }
+    const r=await fetch(CLOUD_BASE+encodeURIComponent(cloudKey(code)),{cache:'no-store'});
+    const t=await r.text();
+    if(!t.trim()){ setNet('on','已连接 · 云端'); return 'empty'; }
+    const j=JSON.parse(t);
+    if(!j || !j.payload){ setNet('on','已连接 · 云端'); return 'empty'; }
     const d=j.payload||{};
     const localTs=Number(localStorage.getItem('sync_local_ts')||0);
     const cloudTs=Number(j.updated_at||0);
@@ -1358,9 +1364,11 @@ async function cloudPush(){
   const code=syncCode();
   try{
     setNet('busy');
-    const r=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,payload:snapshot()})});
+    const body=JSON.stringify({payload:snapshot(),updated_at:Math.floor(Date.now()/1000)});
+    if(body.length>CLOUD_MAX_CHARS){ setNet('off'); if(!window._sizeWarned){ window._sizeWarned=1; alert('数据快到云端容量上限了(20万字符),请在设置里导出备份一份!'); } return; }
+    const r=await fetch(CLOUD_BASE+'update',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({key:cloudKey(code),value:body})});
     const j=await r.json();
-    if(!j.ok){ setNet('off'); return; }
+    if(!j.status){ setNet('off'); return; }
     localStorage.setItem('sync_local_ts', String(Math.floor(Date.now()/1000)));
     localStorage.setItem('sync_time', new Date().toLocaleString());
     setNet('on');
@@ -1407,8 +1415,8 @@ function copySyncCode(){
 function netStateText(){ const t=document.getElementById('netTxt'); return t?t.textContent:'未连接'; }
 async function syncStart(){
   try{
-    const r=await fetch('/api/status'); const j=await r.json();
-    if(!j || !j.ok) throw 0;
+    const r=await fetch(CLOUD_BASE+encodeURIComponent(cloudKey(code)),{cache:'no-store'});
+    if(!r.ok) throw 0;
     setNet('on','已连接 · 云端');
     const res=await cloudPull(false);
     if(res==='empty'){ await cloudPush(); }

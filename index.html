@@ -951,6 +951,13 @@ input[type=color]{width:52px;height:38px;border:1px solid var(--line);border-rad
 .xy-range{width:100%;accent-color:var(--kitty-red);}
 .xy-tag-ok{font-size:12px;color:var(--mint-deep);margin-left:6px;}
 .xy-tag-def{font-size:12px;color:var(--ink-soft);margin-left:6px;}
+
+.xy-lock-preview{width:100%;height:120px;border-radius:12px;background-size:cover;background-position:center;margin-bottom:12px;border:1px solid var(--line);background-color:#ffe3ec;}
+.xy-lock-thumbs{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;margin-top:4px;-webkit-overflow-scrolling:touch;}
+.xy-lock-thumb{flex:0 0 auto;width:74px;height:96px;border-radius:12px;border:3px solid transparent;cursor:pointer;overflow:hidden;background-size:cover;background-position:center;position:relative;transition:transform .15s,border-color .15s;background-color:#f3d9e0;}
+.xy-lock-thumb:hover{transform:translateY(-2px);}
+.xy-lock-thumb.sel{border-color:var(--kitty-red);}
+.xy-lock-thumb .xy-lock-name{position:absolute;left:0;right:0;bottom:0;font-size:9px;color:#fff;background:rgba(0,0,0,.4);padding:2px 0;text-align:center;}
 @media(max-width:600px){.xy-preset-grid{grid-template-columns:repeat(3,1fr);}}
 </style>
 </head>
@@ -3581,6 +3588,16 @@ initLock();
   var LS_BG_MODE='xy_custom_bg_mode';
   var LS_BG_OP='xy_custom_bg_opacity';
   var LS_THEME='xy_custom_theme';
+  var LS_LOCK_BG='xy_lock_bg_img';
+  var LS_LOCK_PRESET='xy_lock_bg_preset';
+  var LOCK_PRESETS=[
+    ['粉樱','linear-gradient(160deg,#ffd9e6 0%,#ffb3c9 60%,#ff8fb3 100%)'],
+    ['薄荷','linear-gradient(160deg,#d8f5e3 0%,#a8e6cf 60%,#7fd8b0 100%)'],
+    ['星空','linear-gradient(160deg,#2c2a4a 0%,#4a3b6b 50%,#7a5c9e 100%)'],
+    ['日落','linear-gradient(160deg,#ffe1b0 0%,#ff9a76 55%,#ff6b6b 100%)'],
+    ['海蓝','linear-gradient(160deg,#cde9ff 0%,#8ec9ff 55%,#5aa9f0 100%)'],
+    ['薰衣草','linear-gradient(160deg,#f0d9ff 0%,#d4a8ff 55%,#b07fe0 100%)']
+  ];
 
   var defaultAvatar='';
   function captureDefault(){
@@ -3655,7 +3672,7 @@ initLock();
     root.style.setProperty('--line', hsl2hex(h,Math.max(s-25,10),Math.min(l+30,94)));
   }
 
-  function applyAll(){ applyAvatar(); applyBg(); applyTheme(); }
+  function applyAll(){ applyAvatar(); applyBg(); applyTheme(); xyApplyLockBg(); }
   window.xyApplyAll=applyAll;
 
   /* ---- 上传头像 ---- */
@@ -3697,6 +3714,65 @@ initLock();
   window.xySetBgOpacity=function(v){ localStorage.setItem(LS_BG_OP,v); applyBg(); var el=document.getElementById('xyBgOpVal'); if(el) el.textContent=v+'%'; };
   window.xyResetBg=function(){ localStorage.removeItem(LS_BG_IMG); localStorage.removeItem(LS_BG_MODE); localStorage.removeItem(LS_BG_OP); applyBg(); setRoute('theme'); alert('已恢复默认粉色背景'); };
 
+  /* ---- 应用锁屏背景到 #lockScreen ---- */
+  function xyApplyLockBg(){
+    var ls=document.getElementById('lockScreen'); if(!ls) return;
+    var img=localStorage.getItem(LS_LOCK_BG);
+    var preset=localStorage.getItem(LS_LOCK_PRESET);
+    ls.style.backgroundImage=''; ls.style.backgroundSize=''; ls.style.backgroundPosition=''; ls.style.backgroundRepeat='';
+    if(img){ ls.style.backgroundImage='url("'+img+'")'; ls.style.backgroundSize='cover'; ls.style.backgroundPosition='center'; ls.style.backgroundRepeat='no-repeat'; }
+    else if(preset){ ls.style.backgroundImage=preset; ls.style.backgroundSize='cover'; ls.style.backgroundPosition='center'; ls.style.backgroundRepeat='no-repeat'; }
+  }
+  function xyUploadLockBg(f){
+    if(!f) return;
+    if(f.size>3000000){ alert('图片超过3MB，换张小一点的'); return; }
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var img=new Image();
+      img.onload=function(){
+        var tR=9/16, sR=img.width/img.height, sx,sy,sw,sh;
+        if(sR>tR){ sh=img.height; sw=sh*tR; sx=(img.width-sw)/2; sy=0; }
+        else { sw=img.width; sh=sw/tR; sx=0; sy=(img.height-sh)/2; }
+        var cv=document.createElement('canvas'); cv.width=360; cv.height=640;
+        var ctx=cv.getContext('2d'); ctx.drawImage(img,sx,sy,sw,sh,0,0,360,640);
+        var data=cv.toDataURL('image/jpeg',0.85);
+        try{ localStorage.setItem(LS_LOCK_BG,data); localStorage.removeItem(LS_LOCK_PRESET); }
+        catch(err){ alert('图片太大存不下，换张小一点的'); return; }
+        xyApplyLockBg(); setRoute('theme'); alert('锁屏背景已设置 ✓');
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(f);
+  }
+  function xySetLockPreset(i){
+    var p=LOCK_PRESETS[i]; if(!p) return;
+    localStorage.setItem(LS_LOCK_PRESET,p[1]); localStorage.removeItem(LS_LOCK_BG);
+    xyApplyLockBg(); setRoute('theme');
+  }
+  function xyResetLockBg(){
+    localStorage.removeItem(LS_LOCK_BG); localStorage.removeItem(LS_LOCK_PRESET);
+    xyApplyLockBg(); setRoute('theme'); alert('已恢复默认锁屏背景');
+  }
+  function xyPreviewLock(){
+    var ls=document.getElementById('lockScreen'); if(!ls) return;
+    xyApplyLockBg();
+    var card=document.getElementById('lockCard');
+    if(card) card.style.display='none';
+    ls.style.display='flex';
+    var tip=document.createElement('div');
+    tip.id='xyLockTip';
+    tip.style.cssText='position:absolute;bottom:26px;left:0;right:0;text-align:center;color:#fff;font-size:13px;text-shadow:0 1px 4px rgba(0,0,0,.4)';
+    tip.textContent='点击空白处关闭预览';
+    ls.appendChild(tip);
+    var close=function(ev){ if(ev.target===ls){ ls.style.display='none'; if(card) card.style.display=''; if(tip.parentNode) tip.parentNode.removeChild(tip); ls.removeEventListener('click',close); } };
+    ls.addEventListener('click',close);
+  }
+  window.xyApplyLockBg=xyApplyLockBg;
+  window.xyUploadLockBg=xyUploadLockBg;
+  window.xySetLockPreset=xySetLockPreset;
+  window.xyResetLockBg=xyResetLockBg;
+  window.xyPreviewLock=xyPreviewLock;
+
   /* ---- 主题色 ---- */
   window.xySetTheme=function(hex){ localStorage.setItem(LS_THEME,hex); applyTheme(); setRoute('theme'); };
   window.xyResetTheme=function(){ localStorage.removeItem(LS_THEME); applyTheme(); setRoute('theme'); alert('已恢复默认粉色主题'); };
@@ -3708,6 +3784,13 @@ initLock();
     var bgMode=localStorage.getItem(LS_BG_MODE)||'cover';
     var bgOp=parseInt(localStorage.getItem(LS_BG_OP))||80;
     var theme=localStorage.getItem(LS_THEME);
+    var lockImg=localStorage.getItem(LS_LOCK_BG);
+    var lockPreset=localStorage.getItem(LS_LOCK_PRESET);
+    var lockPreviewBg=lockImg?('url("'+lockImg+'")'):(lockPreset||'linear-gradient(160deg,#fff0f3 0%,#ffd6e0 50%,#ffc2d1 100%)');
+    var lockThumbs=LOCK_PRESETS.map(function(p,i){
+      return '<div class="xy-lock-thumb '+(lockPreset===p[1]?'sel':'')+'" style="background-image:'+p[1]+'" title="'+p[0]+'" onclick="xySetLockPreset('+i+')"><span class="xy-lock-name">'+p[0]+'</span></div>';
+    }).join('');
+    var lockStatus=lockImg?'<span class="xy-tag-ok">● 已设置自定义锁屏</span>':(lockPreset?'<span class="xy-tag-ok">● 已应用预设壁纸</span>':'<span class="xy-tag-def">当前默认粉色背景</span>');
     var presets=[
       ['🌸','粉色','#e8485c'],['🌿','薄荷绿','#5dbf7d'],['☁️','天空蓝','#5a9fd4'],
       ['💜','薰衣草','#c27fcf'],['🍑','蜜桃橙','#f28e66'],['🍋','柠檬黄','#f2b82e'],
@@ -3769,6 +3852,19 @@ initLock();
         '</div>'+
       '</div>'+
 
+      '<div class="xy-card">'+
+        '<h3>🔒 锁屏背景图</h3>'+
+        '<div class="xy-desc">上传自定义锁屏背景，锁屏全屏显示，独立于主背景，随时可恢复默认，刷新不丢失。</div>'+
+        '<div class="xy-lock-preview" style="background-image:'+lockPreviewBg+'"></div>'+
+        '<div class="xy-btns" style="margin:4px 0 6px">'+
+          '<label class="xy-upload-btn">📷 上传锁屏图<input type="file" accept="image/*" onchange="xyUploadLockBg(this.files[0])" style="display:none"></label> '+
+          '<button class="xy-reset-btn" onclick="xyResetLockBg()">↺ 恢复默认</button> '+
+          '<button class="xy-reset-btn" onclick="xyPreviewLock()">🔍 看全屏</button> '+
+          lockStatus+
+        '</div>'+
+        '<div style="font-size:12px;color:var(--ink-soft);margin:8px 0 2px">预设壁纸（点击即应用，选中粉色描边）：</div>'+
+        '<div class="xy-lock-thumbs">'+lockThumbs+'</div>'+
+      '</div>'+
       '<div class="xy-card" style="text-align:center">'+
         '<div class="xy-desc" style="margin-bottom:0">所有设置已自动保存在本机，刷新不丢。<br>换设备时去「系统设置」导出完整备份一起带走。</div>'+
       '</div>'+

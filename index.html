@@ -13,6 +13,20 @@
 <meta name="apple-mobile-web-app-title" content="心怡工作台">
 <meta name="theme-color" content="#fff0f3">
 <title>个人专属工作台 · 全能仪表板</title>
+<script>
+/* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
+(function(){
+  var WB_VER='20250821b';
+  try{
+    if(localStorage.getItem('_wb_ver')!==WB_VER){
+      localStorage.setItem('_wb_ver',WB_VER);
+      if(location.href.indexOf('_wb_fresh=')===-1){
+        location.replace(location.href+(location.href.indexOf('?')===-1?'?':'&')+'_wb_fresh='+Date.now());
+      }
+    }
+  }catch(e){}
+})();
+</script>
   <link rel="icon" type="image/png" sizes="512x512" href="./app-icon.png">
   <link rel="apple-touch-icon" href="./app-icon.png">
   <link rel="manifest" href="./manifest.json">

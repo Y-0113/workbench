@@ -434,6 +434,18 @@
   .fit-parts{display:flex; gap:8px; flex-wrap:wrap; margin:-4px 0 12px}
   .fit-part{flex:0 0 auto; padding:7px 14px; border-radius:20px; border:1px solid var(--line); background:#fff; font-size:13px; font-weight:700; color:var(--ink-soft); cursor:pointer}
   .fit-part.on{background:var(--kitty-red); color:#fff; border-color:var(--kitty-red)}
+  .fit-list{max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:6px; padding:2px}
+  .fit-row{display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm); padding:9px 10px}
+  .fit-row.done{background:#f3fff5; border-color:#bfe8c4}
+  .fit-name{flex:1 1 auto; min-width:0; font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .fit-row.done .fit-name{text-decoration:line-through; color:var(--ink-soft)}
+  .fit-tag{flex:0 0 auto; font-size:11px; padding:2px 9px; border-radius:20px; background:var(--kitty-pink-soft); color:#c14d6a; font-weight:700}
+  .fit-link{flex:0 0 auto; font-size:12px; font-weight:700; color:#e0556e; text-decoration:none; background:#ffe0e6; padding:3px 10px; border-radius:20px}
+  .fit-nolink{flex:0 0 auto; font-size:11px; color:var(--ink-soft)}
+  .fit-actions{flex:0 0 auto; display:flex; gap:5px}
+  .fit-btn{flex:0 0 auto; font-size:12px; padding:4px 10px; border-radius:20px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; font-family:inherit}
+  .fit-btn.on{background:var(--kitty-red); color:#fff; border-color:var(--kitty-red)}
+  .fit-btn.del{color:#e0455e; border-color:#ffd1d8}
   .fit-part:hover{opacity:.85}
   .recipe-card{background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 13px; margin-bottom:9px}
   .rc-head{display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-weight:600; font-size:14px}
@@ -1977,23 +1989,25 @@ function viewFitness(){
       <button class="pl" onclick="chWater(1)">+</button></div>
     <div class="sec-title">🤸 按部位选择训练</div>
     <div class="fit-parts">${FIT_PARTS.map(p=>`<button class="fit-part ${fitPartNow===p?'on':''}" onclick="fitSetPart('${p}')">${p}</button>`).join('')}</div>
-    <div class="habits" id="fHabits">${filtered.map(({h,i})=>`<div class="dot ${hd.includes(i)?'on':''}" onclick="tgFit(${i})">
-      <span>${esc(h.t)}</span>${h.v?`<a class="fit-v" href="${esc(h.v)}" target="_blank" onclick="event.stopPropagation()">▶ 跟练</a>`:''}
-      <button class="del" onclick="event.stopPropagation();delFit(${i})" style="margin-left:4px;background:transparent;border:none;color:inherit;font-size:13px;cursor:pointer;opacity:.55">×</button></div>`).join('')}</div>
     <div class="add" style="flex-wrap:wrap"><input id="fitIn" placeholder="训练名，如：帕梅拉 15min 肩颈放松" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')addFit()">
-      <input id="fitV" placeholder="视频链接（抖音/小红书/B站，可选）" style="flex:1 1 60%" onkeydown="if(event.key==='Enter')addFit()">
-      <select id="fitP" style="flex:1 1 30%;font-size:13px">${FIT_PARTS.filter(p=>p!=='全部').map(p=>`<option value="${p}">${p}</option>`).join('')}</select>
+      <input id="fitV" placeholder="视频链接（抖音/小红书/B站，可选）" style="flex:1 1 55%" onkeydown="if(event.key==='Enter')addFit()">
+      <select id="fitP" style="flex:1 1 25%;font-size:13px">${FIT_PARTS.filter(p=>p!=='全部').map(p=>`<option value="${p}">${p}</option>`).join('')}</select>
       <button onclick="addFit()">添加</button></div>
-    <p style="font-size:12px;color:var(--ink-soft)">点训练名标记完成；有视频点「▶ 跟练」一键跳转；× 删除</p>`;
+    <div class="sec-title">📋 已添加训练</div>
+    <div class="fit-list" id="fHabits">${filtered.map(({h,i})=>`<div class="fit-row ${hd.includes(i)?'done':''}">
+      <div class="fit-name">${esc(h.t)}</div>
+      <div class="fit-tag">${esc(h.part)}</div>
+      ${h.v?`<a class="fit-link" href="${esc(h.v)}" target="_blank">▶ 视频</a>`:`<span class="fit-nolink">无视频</span>`}
+      <div class="fit-actions"><button class="fit-btn ${hd.includes(i)?'on':''}" onclick="tgFit(${i})">${hd.includes(i)?'✓ 完成':'标记完成'}</button>${h.v?`<button class="fit-btn" onclick="window.open('${esc(h.v)}')">跳转</button>`:''}<button class="fit-btn del" onclick="delFit(${i})">删除</button></div>
+    </div>`).join('')||'<p style="color:var(--ink-soft);text-align:center;padding:14px 0">还没有训练，上面加一项吧～</p>'}</div>
+    <p style="font-size:12px;color:var(--ink-soft)">点「标记完成」打卡；有视频点「▶ 视频」或「跳转」一键打开；删除即移除该项。点上方部位标签可筛选</p>`;
 }
 function fitSetPart(p){ fitPartNow=p; refreshFit(); }
 function addFit(){const t=document.getElementById('fitIn').value.trim();if(!t)return;const v=(document.getElementById('fitV')||{}).value.trim()||'';const p=(document.getElementById('fitP')||{}).value||'全身';let h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit);h.push({t,v,part:p});DB.set('fitnessHabits',h);document.getElementById('fitIn').value='';if(document.getElementById('fitV'))document.getElementById('fitV').value='';refreshFit();}
 function delFit(i){let h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit),d=DB.get('fitnessDone',[]);h.splice(i,1);d=d.filter(x=>x!==i).map(x=>x>i?x-1:x);DB.set('fitnessHabits',h);DB.set('fitnessDone',d);refreshFit();}
-function refreshFit(){const h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit),d=DB.get('fitnessDone',[]);const f=fitPartNow==='全部'?h.map((x,i)=>({x,i})):h.map((x,i)=>({x,i})).filter(o=>o.x.part===fitPartNow);if(document.getElementById('fHabits'))document.getElementById('fHabits').innerHTML=f.map(({x,i})=>`<div class="dot ${d.includes(i)?'on':''}" onclick="tgFit(${i})"><span>${esc(x.t)}</span>${x.v?`<a class="fit-v" href="${esc(x.v)}" target="_blank" onclick="event.stopPropagation()">▶ 跟练</a>`:''}<button class="del" onclick="event.stopPropagation();delFit(${i})" style="margin-left:4px;background:transparent;border:none;color:inherit;font-size:13px;cursor:pointer;opacity:.55">×</button></div>`).join('');}
+function refreshFit(){const h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit),d=DB.get('fitnessDone',[]);const f=fitPartNow==='全部'?h.map((x,i)=>({x,i})):h.map((x,i)=>({x,i})).filter(o=>o.x.part===fitPartNow);if(document.getElementById('fHabits'))document.getElementById('fHabits').innerHTML=f.map(({x,i})=>`<div class="fit-row ${d.includes(i)?'done':''}"><div class="fit-name">${esc(x.t)}</div><div class="fit-tag">${esc(x.part)}</div>${x.v?`<a class="fit-link" href="${esc(x.v)}" target="_blank">▶ 视频</a>`:`<span class="fit-nolink">无视频</span>`}<div class="fit-actions"><button class="fit-btn ${d.includes(i)?'on':''}" onclick="tgFit(${i})">${d.includes(i)?'✓ 完成':'标记完成'}</button>${x.v?`<button class="fit-btn" onclick="window.open('${esc(x.v)}')">跳转</button>`:''}<button class="fit-btn del" onclick="delFit(${i})">删除</button></div></div>`).join('')||'<p style="color:var(--ink-soft);text-align:center;padding:14px 0">还没有训练，上面加一项吧～</p>';}
 function chWater(n){let w=DB.get("water",0)+n;if(w<0)w=0;DB.set("water",w);document.getElementById('waterN').textContent=w;}
-function tgFit(i){let d=DB.get("fitnessDone",[]);d.includes(i)?d=d.filter(x=>x!==i):d.push(i);DB.set("fitnessDone",d);
-  document.querySelectorAll('#fHabits .dot').forEach((el,idx)=>el.classList.toggle('on',d.includes(idx)));}
-
+function tgFit(i){let d=DB.get("fitnessDone",[]);d.includes(i)?d=d.filter(x=>x!==i):d.push(i);DB.set("fitnessDone",d);refreshFit();}
 function viewEnglish(){
   const streak=DB.get("enStreak",0); const todayDone=DB.get("enToday",false); const d=dialog;
   return `<div class="page-title"><img class="kitty-page-icon" data-img="book" src="" alt=""> 英语学习</div><div class="page-desc">生活口语 · 新概念第一册 · 练习小游戏</div>

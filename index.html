@@ -731,6 +731,9 @@
 .kaka-emoji{font-size:30px;text-align:center;margin:4px 0}
 .kaka-moment{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;align-items:center}
 .kaka-moment img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none}
+.hist-scroll{max-height:62vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;margin-bottom:14px}
+.hist-scroll::-webkit-scrollbar{width:6px}
+.hist-scroll::-webkit-scrollbar-thumb{background:#f1c2d2;border-radius:6px}
 .kaka-mood{display:flex;gap:6px;flex-wrap:wrap}
 .kaka-mood .chip{flex:1 1 auto;text-align:center}
 
@@ -1987,11 +1990,11 @@ function viewPlan(){
       <span>📅 ${d}</span><span class="cnt">${byDay[d].length} 项已完成</span><span class="arrow">▶</span></div>
     <div class="hist-body">${byDay[d].map(t=>`<div class="row"><span class="tag">✓</span><div style="flex:1">${esc(t)}</div></div>`).join('')}</div>`).join('')}</div>`:'';
   return `<div class="page-title">📋 每日计划</div><div class="page-desc">勾选完成，进度会同步到首页</div>
-    <div class="sec-title">Today · ${keyDate}</div>
-    <div id="planList">${rows||'<p style="color:var(--ink-soft)">还没有任务，下面加一个吧～</p>'}</div>
     <div class="add"><input id="planIn" placeholder="添加今日待办…" onkeydown="if(event.key==='Enter')addPlan()">
     <button onclick="addPlan()">添加</button></div>
-    ${histHTML}`;
+    <div class="sec-title">Today · ${keyDate}</div>
+    <div id="planList">${rows||'<p style="color:var(--ink-soft)">还没有任务，下面加一个吧～</p>'}</div>
+    <div class="hist-scroll">${histHTML}</div>`;
 }
 function togglePlan(i){
   let d=DB.get("planDone",[]); let h=DB.get("planHist",[]); const tasks=DB.get("plan",[]);
@@ -2247,10 +2250,6 @@ function delBody(date){ let log=bodyLog(); log=log.filter(x=>x.date!==date); set
 function viewGoods(){
   const items=goodsLog();
   return `<div class="page-title">📦 良品宜物</div><div class="page-desc">买过的东西，红榜收藏 / 黑榜避坑</div>
-    <div class="sec-title">🔴 红榜 · 值得回购</div>
-    <div id="goodsRed">${goodsRows(items.filter(x=>x.type==='红榜'))}</div>
-    <div class="sec-title">⚫ 黑榜 · 谨慎避坑</div>
-    <div id="goodsBlack">${goodsRows(items.filter(x=>x.type==='黑榜'))}</div>
     <div class="sec-title">添加一件</div>
     <div class="add" style="flex-wrap:wrap">
       <input id="g_name" placeholder="物品名" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')addGoods()">
@@ -2262,6 +2261,12 @@ function viewGoods(){
       <input id="g_pros" placeholder="优点" style="flex:1 1 45%" onkeydown="if(event.key==='Enter')addGoods()">
       <input id="g_cons" placeholder="缺点" style="flex:1 1 45%" onkeydown="if(event.key==='Enter')addGoods()">
       <button onclick="addGoods()">添加</button>
+    </div>
+    <div class="hist-scroll">
+    <div class="sec-title">🔴 红榜 · 值得回购</div>
+    <div id="goodsRed">${goodsRows(items.filter(x=>x.type==='红榜'))}</div>
+    <div class="sec-title">⚫ 黑榜 · 谨慎避坑</div>
+    <div id="goodsBlack">${goodsRows(items.filter(x=>x.type==='黑榜'))}</div>
     </div>`;
 }
 function goodsRows(list){ return list.length?list.map(x=>`<div class="grow">
@@ -2282,17 +2287,17 @@ function viewSpark(){
   const all=DB.get('spark',DEF.spark).map(normalizeSpark);
   const filtered=sparkFilter==='全部'?all.map((x,i)=>({...x,idx:i})):all.map((x,i)=>({...x,idx:i})).filter(x=>x.cat===sparkFilter);
   return `<div class="page-title">✨ 灵光一现</div><div class="page-desc">记录每一个突发的灵感与脑洞</div>
-    <div class="chips">${sparkTabs()}</div>
-    <div id="sparkList">${filtered.map(x=>sparkRow(x)).join('')||'<p style="color:var(--ink-soft);text-align:center;padding:20px 0">还没有灵感，快来记录一个 ✨</p>'}</div>
-    <div class="sec-title">✍️ 爆款文案模板（点一下填入）</div>
-    <div class="chips">${SPARK_TEMPLATES.map(t=>`<button class="chip" onclick='useTpl(${JSON.stringify(t)})'>${esc(t)}</button>`).join('')}</div>
     <div class="sec-title">捕捉新灵感</div>
     <div class="add" style="flex-wrap:wrap;margin-top:8px">
       <input id="sp_t" placeholder="脑海里闪过一个想法..." style="flex:1 1 100%" onkeydown="if(event.key==='Enter')addSpark()">
       <select id="sp_cat">${SPARK_CATS.filter(c=>c!=='全部').map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
       <select id="sp_st">${SPARK_STATUS.map(s=>`<option value="${s}" ${s==='孵化中'?'selected':''}>${s}</option>`).join('')}</select>
       <button onclick="addSpark()">记录</button>
-    </div>`;
+    </div>
+    <div class="chips">${sparkTabs()}</div>
+    <div class="hist-scroll"><div id="sparkList">${filtered.map(x=>sparkRow(x)).join('')||'<p style="color:var(--ink-soft);text-align:center;padding:20px 0">还没有灵感，快来记录一个 ✨</p>'}</div></div>
+    <div class="sec-title">✍️ 爆款文案模板（点一下填入）</div>
+    <div class="chips">${SPARK_TEMPLATES.map(t=>`<button class="chip" onclick='useTpl(${JSON.stringify(t)})'>${esc(t)}</button>`).join('')}</div>`;
 }
 function sparkTabs(){ return SPARK_CATS.map(c=>`<button class="chip ${c===sparkFilter?'on':''}" onclick="setSparkFilter('${c}')">${c}</button>`).join(''); }
 function setSparkFilter(c){ sparkFilter=c; renderSparkList(); }
@@ -2387,8 +2392,6 @@ function viewMakeup(){
     <div class="ia" style="margin-top:6px"><button class="del" onclick="delMakeup(${gi})">删除</button></div>
   </div>`;}).join(""):'<p style="color:var(--ink-soft)">还没有，添加一条吧～</p>';
   return `<div class="page-title">💄 妆容 & 发型</div><div class="page-desc">收藏灵感与教程，支持图片与视频一键跳转</div>
-    <div class="media-tabs">${tab}</div>
-    ${rows}
     <div class="sec-title">➕ 添加${mkCatNow}</div>
     <div class="add" style="flex-wrap:wrap;margin-top:8px">
       <input id="mk_t" placeholder="${mkCatNow}名称 / 思路" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')addMakeup()">
@@ -2396,7 +2399,9 @@ function viewMakeup(){
       <input id="mk_u" placeholder="视频教程链接(一键跳转)" style="flex:1" onkeydown="if(event.key==='Enter')addMakeup()">
       <label style="font-size:12px;display:flex;align-items:center;gap:6px;flex:1 1 100%"><span>📷 图片</span><input type="file" id="mk_img" accept="image/*" style="font-size:11px"></label>
       <button onclick="addMakeup()">添加</button>
-    </div>`;
+    </div>
+    <div class="media-tabs">${tab}</div>
+    <div class="hist-scroll">${rows}</div>`;
 }
 function mkCat(c){ mkCatNow=c; setRoute("makeup"); }
 function addMakeup(){
@@ -2448,19 +2453,6 @@ function viewRecipe(){
     ${RECIPE_CATS.map(c=>`<button onclick="recipeFilter('${c.id}')" style="background:${filt===c.id?'var(--kitty-red)':'#fff'};color:${filt===c.id?'#fff':'var(--ink)'};border:1px solid ${filt===c.id?'var(--kitty-red)':'var(--line)'};border-radius:18px;padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${c.emoji} ${c.name}</button>`).join('')}
   </div>`;
   return `<div class="page-title">🍳 菜谱</div><div class="page-desc">健康低卡 · 今天吃什么？还有详细做法</div>
-    <div class="sec-title">🎲 今日推荐</div>
-    <div class="rec-pick" id="recPick" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#fff7df,#ffeede);border-radius:var(--radius);padding:14px;border:1px solid var(--line)">
-      ${pickImg?`<img src="${pickImg}" style="width:78px;height:78px;border-radius:14px;object-fit:cover;flex:none">`:''}
-      <div style="flex:1;min-width:0">
-        <div style="font-size:18px;font-weight:800">${esc(pick.t)}</div>
-        ${pick.d?`<div style="font-size:12px;color:var(--ink-soft);margin-top:3px">${esc(pick.d)}</div>`:''}
-        ${pick.cat?`<span class="tag" style="margin-top:6px;display:inline-block">${recipeCatById(pick.cat).emoji} ${esc(pick.cat)}</span>`:''}
-      </div>
-    </div>
-    <button class="btn btn-soft" style="width:100%;margin:8px 0 14px" onclick="recRerollRecipe()">🎲 换一道</button>
-    <div class="sec-title">📖 全部菜谱（点「详情」看做法）</div>
-    ${catChips}
-    <div id="recipeList">${filtered.map((x,i)=>recipeCard(x,items.indexOf(x))).join('') || '<div class="row" style="justify-content:center;color:var(--ink-soft)">该分类下还没有菜谱，点下方添加吧～</div>'}</div>
     <div class="sec-title">➕ 添加菜谱</div>
     <div class="add" style="flex-wrap:wrap;margin-top:8px">
       <input id="rc_t" placeholder="菜名" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')document.getElementById('rc_d').focus()">
@@ -2483,7 +2475,20 @@ function viewRecipe(){
         <img id="rc_img_preview" style="width:46px;height:46px;border-radius:10px;object-fit:cover;background:#faf0f4">
       </div>
       <button onclick="addRecipe()">添加</button>
-    </div>`;
+    </div>
+    <div class="sec-title">🎲 今日推荐</div>
+    <div class="rec-pick" id="recPick" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#fff7df,#ffeede);border-radius:var(--radius);padding:14px;border:1px solid var(--line)">
+      ${pickImg?`<img src="${pickImg}" style="width:78px;height:78px;border-radius:14px;object-fit:cover;flex:none">`:''}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:18px;font-weight:800">${esc(pick.t)}</div>
+        ${pick.d?`<div style="font-size:12px;color:var(--ink-soft);margin-top:3px">${esc(pick.d)}</div>`:''}
+        ${pick.cat?`<span class="tag" style="margin-top:6px;display:inline-block">${recipeCatById(pick.cat).emoji} ${esc(pick.cat)}</span>`:''}
+      </div>
+    </div>
+    <button class="btn btn-soft" style="width:100%;margin:8px 0 14px" onclick="recRerollRecipe()">🎲 换一道</button>
+    <div class="sec-title">📖 全部菜谱（点「详情」看做法）</div>
+    ${catChips}
+    <div class="hist-scroll"><div id="recipeList">${filtered.map((x,i)=>recipeCard(x,items.indexOf(x))).join('') || '<div class="row" style="justify-content:center;color:var(--ink-soft)">该分类下还没有菜谱，点下方添加吧～</div>'}</div></div>`;
 }
 let _rcPendingVideos=[];   /* 添加表单里暂存的视频 */
 let _rcPendingImg='';
@@ -2660,8 +2665,7 @@ function wardInner(){
       <div class="ward-track">${cards}${addCard}</div></div>`;
   }).join('');
   const chips=['全部','春','夏','秋','冬'].map(s=>`<button class="chip ${s===wardSeason?'on':''}" onclick="setWardSeason('${s}')">${s==='全部'?'全部':s+'季'}</button>`).join('');
-  return preview+`<div class="chips" style="margin:2px 0 4px">${chips}</div>`+tracks+
-   `<div class="sec-title" style="margin-top:14px">添加我的衣物（可上传实物图）</div>
+  const wardAddForm=`<div class="sec-title" style="margin-top:14px">添加我的衣物（可上传实物图）</div>
     <div class="add" style="flex-wrap:wrap;margin-top:8px">
       <input id="wd_name" placeholder="例如：米色风衣" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')wardAdd()">
       <select id="wd_cat">${WCATS.map(c=>`<option value="${c.key}">${c.label}</option>`).join('')}</select>
@@ -2670,6 +2674,7 @@ function wardInner(){
       <label style="font-size:12px;display:flex;align-items:center;gap:6px;flex:1 1 100%"><span>📷 实物图</span><input type="file" id="wd_img" accept="image/*" style="font-size:11px;max-width:200px"></label>
       <button onclick="wardAdd()">添加</button>
     </div>`;
+  return wardAddForm+preview+`<div class="chips" style="margin:2px 0 4px">${chips}</div>`+`<div class="hist-scroll">${tracks}</div>`;
 }
 function wardCard(x,cat,worn){
   const on=worn[cat]===x.id;
@@ -3243,19 +3248,19 @@ function viewKaka(){
     <div class="sec-title">今天卡卡心情怎么样</div>
     <div class="kaka-mood">${moods.map(m=>`<button class="chip ${k.mood===m?'on':''}" onclick="kakaMoodSet('${m}')">${m}</button>`).join('')}</div>
     <div class="sec-title">有趣瞬间</div>
-    ${k.moments.length?k.moments.map((x,i)=>`<div class="kaka-moment">
-      ${x.img?`<img src="${x.img}">`:'<div class="kaka-emoji">🐶</div>'}
-      <div style="flex:1"><div style="font-weight:600">${esc(x.text||'')}</div><div style="font-size:12px;color:var(--ink-soft)">${x.date}${x.mood?' · '+x.mood:''}</div></div>
-      <button class="del" onclick="kakaDelMoment(${i})">×</button></div>`).join(''):'<p style="color:var(--ink-soft)">还没有瞬间，记录一下卡卡今天干了啥～</p>'}
     <div class="add" style="display:block;margin-top:8px">
       <input id="kakaText" placeholder="今天卡卡…（如：追着自己的尾巴转圈）" style="width:100%;margin-bottom:6px" onkeydown="if(event.key==='Enter')kakaAddMoment()">
       <label style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:6px"><span>📷 配图</span><input type="file" id="kakaImg" accept="image/*" style="font-size:11px"></label>
       <button class="btn btn-pink" style="width:100%" onclick="kakaAddMoment()">＋ 添加瞬间</button>
-    </div>`;
+    </div>
+    <div class="hist-scroll">${k.moments.length?k.moments.map((x,i)=>`<div class="kaka-moment">
+      ${x.img?`<img src="${x.img}">`:'<div class="kaka-emoji">🐶</div>'}
+      <div style="flex:1"><div style="font-weight:600">${esc(x.text||'')}</div><div style="font-size:12px;color:var(--ink-soft)">${x.date}${x.mood?' · '+x.mood:''}</div></div>
+      <button class="del" onclick="kakaDelMoment(${i})">×</button></div>`).join(''):'<p style="color:var(--ink-soft)">还没有瞬间，记录一下卡卡今天干了啥～</p>'}</div>`;
 }
 function kakaEvent(type,label){ const k=DB.get('kaka',DEF.kaka); k[type].push({date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
 function kakaMoodSet(m){ const k=DB.get('kaka',DEF.kaka); k.mood=m; k.moodLog.push({m,date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
-function kakaAddMoment(){ const t=document.getElementById('kakaText').value.trim(); if(!t)return; const f=document.getElementById('kakaImg'); const k=DB.get('kaka',DEF.kaka); const add=()=>{ k.moments.unshift({text:t,mood:k.mood,date:keyDate,img:f.__img||''}); DB.set('kaka',k); setRoute('kaka'); }; if(f.files&&f.files[0]){ const r=new FileReader(); r.onload=()=>{f.__img=r.result;add();}; r.readAsDataURL(f.files[0]); } else add(); }
+function kakaAddMoment(){ const t=document.getElementById('kakaText').value.trim(); if(!t)return; const f=document.getElementById('kakaImg'); const k=DB.get('kaka',DEF.kaka); const add=()=>{ k.moments.push({text:t,mood:k.mood,date:keyDate,img:f.__img||''}); DB.set('kaka',k); setRoute('kaka'); }; if(f.files&&f.files[0]){ const r=new FileReader(); r.onload=()=>{f.__img=r.result;add();}; r.readAsDataURL(f.files[0]); } else add(); }
 function kakaDelMoment(i){ const k=DB.get('kaka',DEF.kaka); k.moments.splice(i,1); DB.set('kaka',k); setRoute('kaka'); }
 function kakaDays(hd){
   const y=+hd.y, m=+hd.m, d=+hd.d;
@@ -3377,7 +3382,7 @@ function viewTravel(){
       <button class="btn btn-pink" style="width:100%" onclick="travelAdd()">＋ 保存这次旅行</button>
     </div>
     <div class="sec-title">🗺️ 我的旅行地图</div>
-    ${arr.length?arr.slice().reverse().map(t=>travelCard(t)).join(''):'<p style="color:var(--ink-soft);text-align:center;padding:20px 0">还没有旅行记录，添加第一座城市吧 ✈️</p>'}
+    <div class="hist-scroll">${arr.length?arr.slice().reverse().map(t=>travelCard(t)).join(''):'<p style="color:var(--ink-soft);text-align:center;padding:20px 0">还没有旅行记录，添加第一座城市吧 ✈️</p>'}</div>
   </div>`;
 }
 

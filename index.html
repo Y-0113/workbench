@@ -1390,8 +1390,12 @@ function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>'
 function normExtUrl(u){
   if(!u) return '';
   u=String(u).trim();
+  // 1) 先从“中文+链接+中文”混合文本中提取第一个 http(s) 链接
+  const http=u.match(/https?:\/\/[a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=%-]+/i);
+  if(http) return http[0].replace(/[\u4e00-\u9fa5，。！？、；：""''（）【】\s]+$/,'');
+  // 2) 协议相对地址
   if(u.indexOf('//')===0) return 'https:'+u;
-  if(/^[a-z][a-z0-9+.\-]*:\/\//i.test(u)) return u;
+  // 3) 纯域名
   if(/^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u)) return 'https://'+u;
   return '';
 }

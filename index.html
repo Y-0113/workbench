@@ -754,6 +754,8 @@
 .weather-input input{flex:1}
 
 /* ===== 视频一键跳转 ===== */
+.vid-btn{}
+.vid-invalid{opacity:.55;color:var(--ink-soft);cursor:not-allowed;text-decoration:none;font-weight:400}
 .vid-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:1px solid var(--kitty-red);color:var(--kitty-red);background:#fff;cursor:pointer;text-decoration:none}
 .vid-btn:hover{background:var(--kitty-red);color:#fff}
 .vid-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
@@ -1385,11 +1387,38 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('show'
 function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
 /* ===== 全局：外部视频一键跳转原平台 ===== */
+function normExtUrl(u){
+  if(!u) return '';
+  u=String(u).trim();
+  if(u.indexOf('//')===0) return 'https:'+u;
+  if(/^[a-z][a-z0-9+.\-]*:\/\//i.test(u)) return u;
+  if(/^[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u)) return 'https://'+u;
+  return '';
+}
+function openExt(u){
+  const url=normExtUrl(u);
+  if(!url){ alert('链接无效：没有可用的外部视频地址'); return; }
+  window.open(url,'_blank','noopener');
+}
 function vidBtn(u,label,plat){
   if(!u) return '';
   const map={douyin:['抖音','🎵'],bili:['B站','📺'],web:['网页','🔗'],xhs:['小红书','📕'],yt:['YouTube','▶️']};
   const p=map[plat]||['原平台','🔗'];
-  return `<a class="vid-btn" href="${esc(u)}" target="_blank" rel="noopener">${p[1]} ${label||p[0]} ↗</a>`;
+  const safe=normExtUrl(u);
+  if(!safe) return `<span class="vid-btn vid-invalid">${p[1]} ${label||p[0]}（链接无效）</span>`;
+  return `<a class="vid-btn" href="${esc(safe)}" target="_blank" rel="noopener">${p[1]} ${label||p[0]} ↗</a>`;
+}
+function fitVidHtml(v){
+  if(!v) return `<span class="fit-nolink">无视频</span>`;
+  const safe=normExtUrl(v);
+  if(!safe) return `<span class="fit-nolink">链接无效</span>`;
+  return `<a class="fit-link" href="${esc(safe)}" target="_blank" rel="noopener">▶ 视频</a>`;
+}
+function fitJumpBtn(v){
+  if(!v) return '';
+  const safe=normExtUrl(v);
+  if(!safe) return `<button class="fit-btn" disabled style="opacity:.5;cursor:not-allowed">链接无效</button>`;
+  return `<button class="fit-btn" data-u="${esc(safe)}" onclick="openExt(this.dataset.u)">跳转</button>`;
 }
 function vidRow(items){ // items: [{u,label,plat}]
   if(!items||!items.length) return '';
@@ -2029,15 +2058,15 @@ function viewFitness(){
     <div class="fit-list" id="fHabits">${filtered.map(({h,i})=>`<div class="fit-row ${hd.includes(i)?'done':''}">
       <div class="fit-name">${esc(h.t)}</div>
       <div class="fit-tag">${esc(h.part)}</div>
-      ${h.v?`<a class="fit-link" href="${esc(h.v)}" target="_blank">▶ 视频</a>`:`<span class="fit-nolink">无视频</span>`}
-      <div class="fit-actions"><button class="fit-btn ${hd.includes(i)?'on':''}" onclick="tgFit(${i})">${hd.includes(i)?'✓ 完成':'标记完成'}</button>${h.v?`<button class="fit-btn" onclick="window.open('${esc(h.v)}')">跳转</button>`:''}<button class="fit-btn del" onclick="delFit(${i})">删除</button></div>
+      ${fitVidHtml(h.v)}
+      <div class="fit-actions"><button class="fit-btn ${hd.includes(i)?'on':''}" onclick="tgFit(${i})">${hd.includes(i)?'✓ 完成':'标记完成'}</button>${fitJumpBtn(h.v)}<button class="fit-btn del" onclick="delFit(${i})">删除</button></div>
     </div>`).join('')||'<p style="color:var(--ink-soft);text-align:center;padding:14px 0">还没有训练，上面加一项吧～</p>'}</div>
     <p style="font-size:12px;color:var(--ink-soft)">点「标记完成」打卡；有视频点「▶ 视频」或「跳转」一键打开；删除即移除该项。点上方部位标签可筛选</p>`;
 }
 function fitSetPart(p){ fitPartNow=p; refreshFit(); }
 function addFit(){const t=document.getElementById('fitIn').value.trim();if(!t)return;const v=(document.getElementById('fitV')||{}).value.trim()||'';const p=(document.getElementById('fitP')||{}).value||'全身';let h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit);h.push({t,v,part:p});DB.set('fitnessHabits',h);document.getElementById('fitIn').value='';if(document.getElementById('fitV'))document.getElementById('fitV').value='';refreshFit();}
 function delFit(i){let h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit),d=DB.get('fitnessDone',[]);h.splice(i,1);d=d.filter(x=>x!==i).map(x=>x>i?x-1:x);DB.set('fitnessHabits',h);DB.set('fitnessDone',d);refreshFit();}
-function refreshFit(){const h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit),d=DB.get('fitnessDone',[]);const f=fitPartNow==='全部'?h.map((x,i)=>({x,i})):h.map((x,i)=>({x,i})).filter(o=>o.x.part===fitPartNow);if(document.getElementById('fHabits'))document.getElementById('fHabits').innerHTML=f.map(({x,i})=>`<div class="fit-row ${d.includes(i)?'done':''}"><div class="fit-name">${esc(x.t)}</div><div class="fit-tag">${esc(x.part)}</div>${x.v?`<a class="fit-link" href="${esc(x.v)}" target="_blank">▶ 视频</a>`:`<span class="fit-nolink">无视频</span>`}<div class="fit-actions"><button class="fit-btn ${d.includes(i)?'on':''}" onclick="tgFit(${i})">${d.includes(i)?'✓ 完成':'标记完成'}</button>${x.v?`<button class="fit-btn" onclick="window.open('${esc(x.v)}')">跳转</button>`:''}<button class="fit-btn del" onclick="delFit(${i})">删除</button></div></div>`).join('')||'<p style="color:var(--ink-soft);text-align:center;padding:14px 0">还没有训练，上面加一项吧～</p>';}
+function refreshFit(){const h=DB.get('fitnessHabits',DEF.fitnessHabits).map(normalizeFit),d=DB.get('fitnessDone',[]);const f=fitPartNow==='全部'?h.map((x,i)=>({x,i})):h.map((x,i)=>({x,i})).filter(o=>o.x.part===fitPartNow);if(document.getElementById('fHabits'))document.getElementById('fHabits').innerHTML=f.map(({x,i})=>`<div class="fit-row ${d.includes(i)?'done':''}"><div class="fit-name">${esc(x.t)}</div><div class="fit-tag">${esc(x.part)}</div>${fitVidHtml(x.v)}<div class="fit-actions"><button class="fit-btn ${d.includes(i)?'on':''}" onclick="tgFit(${i})">${d.includes(i)?'✓ 完成':'标记完成'}</button>${fitJumpBtn(x.v)}<button class="fit-btn del" onclick="delFit(${i})">删除</button></div></div>`).join('')||'<p style="color:var(--ink-soft);text-align:center;padding:14px 0">还没有训练，上面加一项吧～</p>';}
 function chWater(n){let w=DB.get("water",0)+n;if(w<0)w=0;DB.set("water",w);document.getElementById('waterN').textContent=w;}
 function tgFit(i){let d=DB.get("fitnessDone",[]);d.includes(i)?d=d.filter(x=>x!==i):d.push(i);DB.set("fitnessDone",d);refreshFit();}
 function viewEnglish(){
@@ -2062,7 +2091,7 @@ function viewEnglish(){
     <div id="engGame" class="gq-card" style="margin-top:8px"></div>
     <div class="sec-title" style="margin-top:16px">📚 学习资源（新概念第一册）</div>
     <div class="eng-res">
-      ${ENG_RES.map(r=>`<div class="res-card"><div class="rt">${r.t}</div><div class="rd">${r.d}</div><a href="${r.u}" target="_blank" onclick="event.stopPropagation()">${r.a} →</a></div>`).join('')}
+      ${ENG_RES.map(r=>`<div class="res-card"><div class="rt">${r.t}</div><div class="rd">${r.d}</div><a href="${esc(normExtUrl(r.u)||r.u)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${r.a} →</a></div>`).join('')}
     </div>`;
 }
 const NCE=[
@@ -2328,7 +2357,7 @@ function normalizeItem(x){ if(typeof x==='string') return {t:x,d:'',tag:'',u:''}
 function collRow(x,i,key,opts){
   opts=opts||{}; const tag=x.tag?`<span class="tag">${esc(x.tag)}</span>`:'';
   const desc=x.d?`<div style="font-size:12px;color:var(--ink-soft)">${esc(x.d)}</div>`:'';
-  const link=(opts.link&&x.u)?`<a class="go" href="${esc(x.u)}" target="_blank" onclick="event.stopPropagation()">打开 ↗</a>`:'';
+  const lu=(opts.link&&x.u)?normExtUrl(x.u):''; const link=lu?`<a class="go" href="${esc(lu)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">打开 ↗</a>`:'';
   return `<div class="row">${tag}<div style="flex:1"><div style="font-weight:600">${esc(x.t)}</div>${desc}</div>${link}<button class="del" onclick="delColl('${key}',${i},${opts.desc?1:0},${opts.tag?1:0},${opts.link?1:0})" style="background:none;border:none;color:#d4b2bc;font-size:18px;cursor:pointer">×</button></div>`;
 }
 function collRowsHTML(items,key,opts){ return items.length?items.map((x,i)=>collRow(x,i,key,opts)).join(''):'<p style="color:var(--ink-soft)">还是空的，加一个吧～</p>'; }

@@ -2453,7 +2453,7 @@ function viewRecipe(){
     ${RECIPE_CATS.map(c=>`<button onclick="recipeFilter('${c.id}')" style="background:${filt===c.id?'var(--kitty-red)':'#fff'};color:${filt===c.id?'#fff':'var(--ink)'};border:1px solid ${filt===c.id?'var(--kitty-red)':'var(--line)'};border-radius:18px;padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${c.emoji} ${c.name}</button>`).join('')}
   </div>`;
   return `<div class="page-title">🍳 菜谱</div><div class="page-desc">健康低卡 · 今天吃什么？还有详细做法</div>
-    <button class="btn btn-pink" style="width:100%;font-size:15px;padding:12px;margin-bottom:6px" onclick="rcToggleForm()">＋ 添加菜谱</button>
+    <button onclick="rcToggleForm()" style="width:100%;font-size:15px;font-weight:700;padding:12px 16px;margin-bottom:10px;border:none;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--kitty-pink),var(--kitty-red));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(232,72,92,.25)">＋ 添加菜谱</button>
     <div class="add" id="rcFormWrap" style="flex-wrap:wrap;margin-top:8px;display:none">
       <input id="rc_t" placeholder="菜名" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')document.getElementById('rc_d').focus()">
       <input id="rc_d" placeholder="一句话简介" style="flex:1 1 60%" onkeydown="if(event.key==='Enter')document.getElementById('rc_tag').focus()">

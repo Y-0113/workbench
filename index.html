@@ -2453,8 +2453,8 @@ function viewRecipe(){
     ${RECIPE_CATS.map(c=>`<button onclick="recipeFilter('${c.id}')" style="background:${filt===c.id?'var(--kitty-red)':'#fff'};color:${filt===c.id?'#fff':'var(--ink)'};border:1px solid ${filt===c.id?'var(--kitty-red)':'var(--line)'};border-radius:18px;padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">${c.emoji} ${c.name}</button>`).join('')}
   </div>`;
   return `<div class="page-title">🍳 菜谱</div><div class="page-desc">健康低卡 · 今天吃什么？还有详细做法</div>
-    <div class="sec-title">➕ 添加菜谱</div>
-    <div class="add" style="flex-wrap:wrap;margin-top:8px">
+    <button class="btn btn-pink" style="width:100%;font-size:15px;padding:12px;margin-bottom:6px" onclick="rcToggleForm()">＋ 添加菜谱</button>
+    <div class="add" id="rcFormWrap" style="flex-wrap:wrap;margin-top:8px;display:none">
       <input id="rc_t" placeholder="菜名" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')document.getElementById('rc_d').focus()">
       <input id="rc_d" placeholder="一句话简介" style="flex:1 1 60%" onkeydown="if(event.key==='Enter')document.getElementById('rc_tag').focus()">
       <select id="rc_cat" style="flex:1 1 35%;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:inherit;background:#fff">${RECIPE_CATS.map(c=>`<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('')}</select>
@@ -2506,6 +2506,17 @@ function rcRenderVideoList(){
   const box=document.getElementById('rc_vlist');
   if(!box) return;
   box.innerHTML=_rcPendingVideos.length? `<div style="display:flex;flex-wrap:wrap;gap:6px">${_rcPendingVideos.map((v,i)=>vidBtn(v.u, v.label, v.plat)+` <button type="button" onclick="rcRemoveVideo(${i})" style="background:none;border:none;color:var(--kitty-red);cursor:pointer">×</button>`).join('')}</div>` : '';
+}
+function rcToggleForm(){
+  const w=document.getElementById('rcFormWrap'); if(!w) return;
+  const open=w.style.display!=='none';
+  if(open){ w.style.display='none'; }
+  else {
+    w.style.display='block';
+    _rcPendingVideos=[]; _rcPendingImg='';
+    rcRenderVideoList();
+    rcBindImgPreview();
+  }
 }
 function rcBindImgPreview(){
   const f=document.getElementById('rc_img');
@@ -2581,6 +2592,7 @@ function addRecipe(){
   document.getElementById('rc_t').value='';document.getElementById('rc_d').value='';document.getElementById('rc_tag').value='';document.getElementById('rc_servings').value='';document.getElementById('rc_time').value='';document.getElementById('rc_m').value='';document.getElementById('rc_s').value='';document.getElementById('rc_v').value='';document.getElementById('rc_vlab').value='';
   _rcPendingVideos=[]; _rcPendingImg='';
   document.getElementById('recipeList').innerHTML=a.map((x,i)=>recipeCard(x,i)).join('');
+  const fw=document.getElementById('rcFormWrap'); if(fw) fw.style.display='none';
 }
 function delRecipe(i){ let a=DB.get("recipe",DEF.recipe).map(normalizeRecipe); a.splice(i,1); DB.set("recipe",a); document.getElementById('recipeList').innerHTML=a.map((x,j)=>recipeCard(x,j)).join(''); }
 

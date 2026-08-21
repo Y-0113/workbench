@@ -712,6 +712,14 @@
 
 /* ===== 卡卡小狗 ===== */
 .kaka-hero{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#fff,#fff3e9);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
+.kaka-home{background:linear-gradient(135deg,#fff6fb,#fff);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
+.kaka-home-h{font-size:16px;font-weight:800;margin-bottom:10px;color:var(--kitty-pink)}
+.kaka-home-inputs{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kaka-home-inputs input{width:74px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;text-align:center;background:#fff}
+.kaka-home-inputs input:focus{outline:none;border-color:var(--kitty-pink)}
+.kaka-home-inputs .btn{margin-left:auto}
+.kaka-days{margin-top:10px;font-size:14px;color:var(--ink-soft);font-weight:600}
+.kaka-days b{color:var(--kitty-pink);font-size:18px;margin:0 2px}
 .kaka-face{width:64px;height:64px;flex:none}
 .kaka-name{font-size:18px;font-weight:800}
 .kaka-sub{font-size:12px;color:var(--ink-soft)}
@@ -3203,8 +3211,19 @@ function kakaLast(arr){ if(!arr||!arr.length) return '尚无记录'; const d=arr
 function viewKaka(){
   const k=DB.get('kaka',DEF.kaka);
   const moods=['开心','黏人','高冷','犯困','吃醋','兴奋'];
-  return `<div class="page-title">🐶 卡卡的小天地</div>
-    <div class="page-desc">马尔泰小狗の日常记录</div>
+  const hd=k.homeDate||{y:"",m:"",d:""};
+  const homeDays=(hd.y&&hd.m&&hd.d)?kakaDays(hd):null;
+  return `<div class="kaka-home">
+      <div class="kaka-home-h">🏠 到家纪念日</div>
+      <div class="kaka-home-inputs">
+        <input id="kakaHomeY" type="number" inputmode="numeric" min="1900" max="2100" placeholder="年" value="${esc(hd.y||'')}">
+        <input id="kakaHomeM" type="number" inputmode="numeric" min="1" max="12" placeholder="月" value="${esc(hd.m||'')}">
+        <input id="kakaHomeD" type="number" inputmode="numeric" min="1" max="31" placeholder="日" value="${esc(hd.d||'')}">
+        <button class="btn btn-pink" onclick="kakaSaveHomeDate()">保存</button>
+      </div>
+      ${homeDays!==null?`<div class="kaka-days">已相伴 <b>${homeDays}</b> 天</div>`:''}
+    </div>
+    <div class="page-title">卡卡の小天地</div>
     <div class="kaka-hero">
       <img data-img="dog" src="" alt="" style="width:80px;height:60px;object-fit:contain;flex:none">
       <div><div class="kaka-name">卡卡 🐾</div><div class="kaka-sub">今天心情：${esc(k.mood)} · 已记录 ${k.moments.length} 个有趣瞬间</div></div>
@@ -3238,6 +3257,25 @@ function kakaEvent(type,label){ const k=DB.get('kaka',DEF.kaka); k[type].push({d
 function kakaMoodSet(m){ const k=DB.get('kaka',DEF.kaka); k.mood=m; k.moodLog.push({m,date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
 function kakaAddMoment(){ const t=document.getElementById('kakaText').value.trim(); if(!t)return; const f=document.getElementById('kakaImg'); const k=DB.get('kaka',DEF.kaka); const add=()=>{ k.moments.unshift({text:t,mood:k.mood,date:keyDate,img:f.__img||''}); DB.set('kaka',k); setRoute('kaka'); }; if(f.files&&f.files[0]){ const r=new FileReader(); r.onload=()=>{f.__img=r.result;add();}; r.readAsDataURL(f.files[0]); } else add(); }
 function kakaDelMoment(i){ const k=DB.get('kaka',DEF.kaka); k.moments.splice(i,1); DB.set('kaka',k); setRoute('kaka'); }
+function kakaDays(hd){
+  const y=+hd.y, m=+hd.m, d=+hd.d;
+  if(!y||!m||!d) return 0;
+  const start=new Date(y, m-1, d); start.setHours(0,0,0,0);
+  const now=new Date(); now.setHours(0,0,0,0);
+  const diff=Math.round((now-start)/86400000);
+  return diff>=0?diff:0;
+}
+function kakaSaveHomeDate(){
+  const y=(document.getElementById('kakaHomeY').value||'').trim();
+  const m=(document.getElementById('kakaHomeM').value||'').trim();
+  const d=(document.getElementById('kakaHomeD').value||'').trim();
+  if(!y||!m||!d){ alert('请把年、月、日都填好哦～'); return; }
+  if(+m<1||+m>12||+d<1||+d>31){ alert('日期填得不太对，检查一下吧～'); return; }
+  const k=DB.get('kaka',DEF.kaka);
+  k.homeDate={y:y,m:m,d:d};
+  DB.set('kaka',k);
+  setRoute('kaka');
+}
 
 /* ===== 旅行足迹 ===== */
 function zoomImg(src){ if(!src) return; const o=document.createElement('div'); o.className='imgzoom'; o.innerHTML='<img src="'+src+'">'; o.onclick=()=>o.remove(); document.body.appendChild(o); }

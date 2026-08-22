@@ -1480,7 +1480,7 @@ function setRoute(id){
   else if(id==='body') C.innerHTML=viewBody();
   else if(id==='goods') C.innerHTML=viewGoods();
   else if(id==='ledger') C.innerHTML=viewLedger();
-  else if(id==='skin') C.innerHTML=viewSkin();
+  else if(id==='skin'){ try{ C.innerHTML=viewSkin(); }catch(e){ C.innerHTML='<div style="padding:24px;color:#e35d6a;font-size:14px">护肤日记加载出错：'+((e&&e.message)||e)+'</div>'; console.error(e); } }
   renderNav(); renderDock(); highlightNav(id);
   applyKittyImgs();  // 自动填 Hello Kitty 主题图
   window.scrollTo(0,0);

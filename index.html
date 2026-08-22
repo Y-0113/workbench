@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260822a';
+  var WB_VER='20260822b';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1962,7 +1962,7 @@ function viewLedger(){
   const isToday=ledgerDate===keyDate;
   return `
   <div class="wallet-head">
-    <button class="eye-btn" onclick="toggleAmount()" title="显示 / 隐藏金额">${amountHidden?'🙈':'👁️'}</button>
+    <button class="eye-btn" onclick="toggleAmount()" title="显示 / 隐藏金额">${amountHidden?'🙈':'🙉'}</button>
     <img class="wallet-icon" data-img="apple" src="" alt="" style="width:60px;height:60px;margin:0 auto 8px;display:block">
     <div class="wallet-title">我的小钱包</div>
     <div class="wallet-sub">钱要理清楚 <span>💰</span> 每一笔都明明白白～</div>

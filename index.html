@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260822b';
+  var WB_VER='20260823a';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -30,15 +30,9 @@
   <link rel="icon" type="image/png" sizes="512x512" href="./app-icon.png">
   <link rel="apple-touch-icon" href="./app-icon.png">
   <link rel="manifest" href="./manifest.json">
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-    "three-globe": "https://unpkg.com/three-globe@2.31.0/dist/three-globe.mjs"
-  }
-}
-</script>
+<!-- 旅行足迹 3D 地球：echarts + echarts-gl（defer 懒加载，进入旅行路由时才初始化） -->
+<script defer src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
 <style>
   :root{
     /* Hello Kitty 主题色 */
@@ -837,19 +831,38 @@
 .search-title{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .search-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ===== 旅行足迹地图 ===== */
-.travel-map{position:relative;background:linear-gradient(135deg,#e8f4ff,#f0f8ff);border:1px solid var(--line);border-radius:var(--radius);height:180px;overflow:hidden;padding:12px}
-.travel-globe-wrap{position:relative;background:linear-gradient(135deg,#e0f7ff,#f3e9d2);border:1px solid var(--line);border-radius:var(--radius);height:420px;overflow:hidden;margin-bottom:14px}
-#travelGlobe{width:100%;height:100%}
-.globe-tooltip{position:absolute;pointer-events:none;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--ink);box-shadow:var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;z-index:10;max-width:220px}
-.globe-tooltip.show{opacity:1;transform:translateY(0)}
-.globe-tooltip b{color:var(--kitty-red);font-size:14px}
-.globe-tooltip p{margin:4px 0 0;color:var(--ink-soft);font-size:12px;line-height:1.5}
-.globe-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:14px}
-.map-outline{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#c8d9e5;font-weight:700;letter-spacing:2px}
-.map-pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;z-index:2;cursor:pointer}
-.map-pin-dot{width:12px;height:12px;background:var(--kitty-red);border-radius:50%;box-shadow:0 0 0 3px rgba(232,72,92,.2);border:2px solid #fff}
-.map-pin-label{font-size:9px;color:var(--kitty-red-dark);font-weight:700;background:#fff;border-radius:8px;padding:1px 4px;margin-top:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+/* ===== 旅行足迹地图（3D 地球） ===== */
+.travel-earth-card{position:relative;background:#0b1f33;border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow)}
+.travel-map3d{width:100%;height:42vh;min-height:300px}
+.travel-map3d canvas{display:block}
+.travel-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#eaf4ff;font-size:15px;font-weight:600;background:rgba(8,24,40,.38);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:20px;z-index:5}
+.travel-fab{position:absolute;right:14px;bottom:14px;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--kitty-pink),var(--kitty-red));color:#fff;font-size:28px;line-height:48px;cursor:pointer;box-shadow:0 6px 18px rgba(232,72,92,.45);transition:.15s;z-index:6}
+.travel-fab:hover{transform:scale(1.08)}
+.city-info-card{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:7;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:16px;padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);min-width:190px}
+.city-info-card .ci-close{position:absolute;top:3px;right:8px;border:none;background:none;color:#c97b8a;font-size:18px;cursor:pointer;line-height:1}
+.city-info-card .ci-emoji{font-size:26px}
+.city-info-card .ci-name{font-size:16px;font-weight:800;color:var(--ink)}
+.city-info-card .ci-stats{display:flex;gap:16px;margin-left:4px}
+.city-info-card .ci-stats div{text-align:center}
+.city-info-card .ci-stats b{display:block;font-size:18px;color:var(--kitty-red)}
+.city-info-card .ci-stats span{font-size:11px;color:var(--ink-soft)}
+/* 城市搜索弹窗（动态挂到 body，避免被父级 transform 裁剪） */
+.city-search-mask{position:fixed;inset:0;background:rgba(40,20,30,.42);display:none;align-items:flex-end;justify-content:center;z-index:200;padding:0}
+.city-search-box{width:100%;max-width:480px;background:#fff;border-radius:18px 18px 0 0;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.2)}
+@media(min-width:560px){.city-search-mask{align-items:center}.city-search-box{border-radius:18px}}
+.csb-head{font-weight:800;color:var(--ink);margin-bottom:10px;font-size:15px}
+.csb-input{width:100%;border:2px solid var(--line);border-radius:12px;padding:11px 14px;font-size:15px;outline:none;font-family:inherit;margin-bottom:10px}
+.csb-input:focus{border-color:var(--kitty-pink)}
+.csb-results{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.csb-item{padding:11px 12px;border-radius:12px;background:#fff7f9;color:var(--ink);font-weight:600;cursor:pointer;transition:.12s}
+.csb-item:hover{background:var(--kitty-pink-soft)}
+.csb-empty{padding:14px;text-align:center;color:var(--ink-soft);font-size:13px}
+/* 2D 降级地图 */
+.travel-map2d{position:relative;background:linear-gradient(135deg,#e8f4ff,#f0f8ff);border:1px solid var(--line);border-radius:var(--radius);height:42vh;min-height:300px;overflow:hidden;padding:12px}
+.travel-map2d .map-outline{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#c8d9e5;font-weight:700;letter-spacing:2px}
+.travel-map2d .map-pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;z-index:2}
+.travel-map2d .map-pin-dot{width:12px;height:12px;background:var(--kitty-red);border-radius:50%;box-shadow:0 0 0 3px rgba(232,72,92,.2);border:2px solid #fff}
+.travel-map2d .map-pin-label{font-size:9px;color:var(--kitty-red-dark);font-weight:700;background:#fff;border-radius:8px;padding:1px 4px;margin-top:2px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.1)}
 
 /* ===== 行情模块 ===== */
 .mkt-card{background:linear-gradient(145deg,#fff,#fff6f9);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
@@ -1601,7 +1614,7 @@ function setRoute(id){
   window.scrollTo(0,0);
   if(id==='english') setTimeout(renderNCE,0);
   if(id==='recipe') setTimeout(rcBindImgPreview,0);
-  if(id==='travel') setTimeout(()=>{ if(typeof window.initTravelGlobe==='function') window.initTravelGlobe(); },0);
+  if(id==='travel') setTimeout(initTravelEarth,0);
   if(id==='market') setTimeout(mktStartTimers,0);
   if(id==='skin') checkSkinReminders();
 }
@@ -3978,25 +3991,192 @@ const CITY_COORD={
   '福州':[119.3,26.1],'海口':[110.3,20.0],'呼和浩特':[111.7,40.8],'银川':[106.2,38.5],
   '西宁':[101.8,36.6],'香港':[114.2,22.3],'澳门':[113.6,22.2],'台北':[121.5,25.0]
 };
-function travelMapHTML(){
+var travelChart=null, travelBreathTimer=null;
+
+/* 聚合：按城市去重，统计打卡次数 / 美食数 / 最近日期 */
+function travelCitiesAgg(){
   const arr=DB.get('travel',DEF.travel);
-  if(!arr.length) return '<p style="color:var(--ink-soft);text-align:center;padding:20px 0">还没有旅行记录，先添加城市吧 ✈️</p>';
-  const dots=arr.map(t=>{
-    const c=CITY_COORD[t.city];
-    if(!c) return null;
-    const x=((c[0]-73)/47*100).toFixed(1);
-    const y=(100-((c[1]-18)/36*100)).toFixed(1);
-    return `<div class="map-pin" style="left:${x}%;top:${y}%" title="${esc(t.city)}">
-      <span class="map-pin-dot"></span><span class="map-pin-label">${esc(t.city)}</span>
-    </div>`;
-  }).filter(Boolean).join('');
-  return `<div class="travel-map">
-    <div class="map-outline">🇨🇳 我的旅行足迹</div>
-    ${dots}
-  </div>
-  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
-    ${arr.map(t=>`<span class="tag" style="background:var(--kitty-pink-soft);color:var(--kitty-red-dark)">✈️ ${esc(t.city)}</span>`).join('')}
+  const map={};
+  arr.forEach(t=>{
+    const n=t.city; if(!n) return;
+    if(!map[n]) map[n]={name:n, trips:[], spots:0, foods:0, dates:[]};
+    map[n].trips.push(t);
+    map[n].spots += (t.spots?t.spots.length:0);
+    map[n].foods += (t.foods?t.foods.length:0);
+    if(t.date) map[n].dates.push(t.date);
+  });
+  return Object.keys(map).map(n=>{
+    const c=map[n]; const co=CITY_COORD[n]||null;
+    c.coord=co;
+    c.date = c.dates.length? c.dates.slice().sort().pop() : '';
+    return c;
+  }).filter(c=>c.coord);
+}
+function haversine(lng1,lat1,lng2,lat2){
+  const R=6371, toR=Math.PI/180;
+  const dLat=(lat2-lat1)*toR, dLng=(lng2-lng1)*toR;
+  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*toR)*Math.cos(lat2*toR)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+}
+function webglOK(){ try{ const c=document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl')||c.getContext('experimental-webgl'))); }catch(e){ return false; } }
+function makeFallbackTexture(){
+  const c=document.createElement('canvas'); c.width=1024; c.height=512;
+  const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,512);
+  g.addColorStop(0,'#2a7bb0'); g.addColorStop(1,'#0e3a63');
+  x.fillStyle=g; x.fillRect(0,0,1024,512);
+  x.fillStyle='rgba(120,170,110,0.45)';
+  x.beginPath(); x.ellipse(520,260,260,150,0,0,7); x.fill();
+  x.beginPath(); x.ellipse(250,300,150,95,0,0,7); x.fill();
+  const img=new Image(); img.src=c.toDataURL(); return img;
+}
+function loadSatTexture(cb){
+  const urls=[
+    'https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-blue-marble.jpg',
+    'https://unpkg.com/three-globe@2.31.0/example/img/earth-blue-marble.jpg'
+  ];
+  let i=0;
+  (function tryNext(){
+    if(i>=urls.length){ cb(null); return; }
+    const u=urls[i++]; const img=new Image(); img.crossOrigin='anonymous';
+    img.onload=()=>cb(img); img.onerror=tryNext; img.src=u;
+  })();
+}
+function travelMapHTML(){
+  return `<div class="travel-earth-card">
+    <div id="travelMap" class="travel-map3d"></div>
+    <div id="travelEmpty" class="travel-empty">🌏 还没有旅行记录，先添加城市吧</div>
+    <div id="cityInfoCard" class="city-info-card" style="display:none"></div>
+    <button class="travel-fab" title="添加城市" onclick="openCitySearch()">＋</button>
   </div>`;
+}
+function initTravelEarth(){
+  if(travelBreathTimer){ clearInterval(travelBreathTimer); travelBreathTimer=null; }
+  if(travelChart){ try{ travelChart.dispose(); }catch(e){} travelChart=null; }
+  const el=document.getElementById('travelMap'); if(!el) return;
+  const cities=travelCitiesAgg();
+  const empty=document.getElementById('travelEmpty');
+  if(empty) empty.style.display = cities.length? 'none':'flex';
+  // 降级：无 WebGL / echarts 缺失 → 2D 平面地图
+  if(!webglOK() || typeof echarts==='undefined' || typeof echarts.init!=='function'){ travelRender2D(el,cities); return; }
+  let chart;
+  try{
+    chart=echarts.init(el);
+    travelChart=chart;
+  }catch(e){ travelRender2D(el,cities); return; }
+  try{
+    const ordered=cities.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const latest=ordered.length? ordered[ordered.length-1]:null;
+    const normalPts=ordered.filter(c=>c!==latest).map(c=>({name:c.name, value:[c.coord[0],c.coord[1]]}));
+    const latestPts=latest? [{name:latest.name, value:[latest.coord[0],latest.coord[1]]}] : [];
+    const lineData=[], distData=[];
+    for(let i=0;i<ordered.length-1;i++){
+      const a=ordered[i], b=ordered[i+1];
+      lineData.push({coords:[[a.coord[0],a.coord[1]],[b.coord[0],b.coord[1]]]});
+      const d=haversine(a.coord[0],a.coord[1],b.coord[0],b.coord[1]);
+      const mlng=(a.coord[0]+b.coord[0])/2, mlat=(a.coord[1]+b.coord[1])/2;
+      distData.push({name:'+'+d+'km', value:[mlng,mlat,0.3]});
+    }
+    chart.setOption({
+      backgroundColor:'transparent',
+      globe:{
+        baseTexture: makeFallbackTexture(),
+        shading:'realistic',
+        realisticMaterial:{roughness:0.8, metalness:0},
+        radius:100,
+        viewControl:{ autoRotate:false, rotateSensitivity:1, zoomSensitivity:1, distance:200, minDistance:130, maxDistance:340, center:[104,35] },
+        atmosphere:{ show:true, offset:8, color:'#7ec8ff' },
+        light:{ ambient:{intensity:0.7}, main:{intensity:1.0, shadow:false} }
+      },
+      series:[
+        { id:'ln', type:'lines3D', coordinateSystem:'globe',
+          effect:{show:true, period:4, trailWidth:2, trailLength:0.3, trailOpacity:0.8, trailColor:'#4A90D9'},
+          blendMode:'lighter',
+          lineStyle:{ color:'#4A90D9', width:1.5, opacity:0.6 }, data:lineData },
+        { id:'mk', type:'scatter3D', coordinateSystem:'globe', name:'cities',
+          symbol:'circle', symbolSize:12,
+          itemStyle:{ color:'#E88B9E', opacity:0.95, borderColor:'#fff', borderWidth:2 },
+          label:{ show: cities.length<=50, formatter:'{b}', position:'top', color:'#fff', fontSize:12, textBorderColor:'#333', textBorderWidth:2 },
+          emphasis:{ label:{show:true,fontSize:14}, itemStyle:{color:'#FF6B8A'} }, data:normalPts },
+        { id:'lt', type:'scatter3D', coordinateSystem:'globe', name:'latest',
+          symbol:'circle', symbolSize:16,
+          itemStyle:{ color:'#FF6B8A', opacity:1, borderColor:'#fff', borderWidth:2 }, data:latestPts },
+        { id:'dt', type:'scatter3D', coordinateSystem:'globe', name:'dist',
+          symbol:'none',
+          label:{ show:true, formatter:'{b}', color:'#fff', fontSize:11, textBorderColor:'#333', textBorderWidth:2, position:'top' }, data:distData }
+      ]
+    });
+    loadSatTexture(img=>{ if(img && travelChart===chart) chart.setOption({globe:{baseTexture:img}}); });
+    if(latest){
+      let t=0;
+      travelBreathTimer=setInterval(()=>{
+        if(travelChart!==chart){ clearInterval(travelBreathTimer); travelBreathTimer=null; return; }
+        t+=0.4; const ss=16+3*Math.sin(t);
+        chart.setOption({series:[{id:'lt', symbolSize:ss}]});
+      },400);
+    }
+    chart.on('click', p=>{
+      if(p.seriesType==='scatter3D' && (p.seriesName==='cities'||p.seriesName==='latest')){
+        showCityInfo(p.name, p.event?p.event.offsetX:null, p.event?p.event.offsetY:null);
+      }
+    });
+  }catch(e){ travelRender2D(el,cities); }
+}
+function travelRender2D(el, cities){
+  if(!el) return;
+  const dots=cities.map(c=>{
+    const x=((c.coord[0]-73)/47*100).toFixed(1);
+    const y=(100-((c.coord[1]-18)/36*100)).toFixed(1);
+    return '<div class="map-pin" style="left:'+x+'%;top:'+y+'" title="'+esc(c.name)+'"><span class="map-pin-dot"></span><span class="map-pin-label">'+esc(c.name)+'</span></div>';
+  }).join('');
+  el.className='travel-map2d';
+  el.innerHTML='<div class="map-outline">🇨🇳 我的旅行足迹（2D）</div>'+dots;
+}
+function showCityInfo(name, x, y){
+  const cities=travelCitiesAgg();
+  const c=cities.find(z=>z.name===name); if(!c) return;
+  const card=document.getElementById('cityInfoCard'); if(!card) return;
+  card.innerHTML='<button class="ci-close" onclick="closeCityInfo()">×</button>'+
+    '<div class="ci-emoji">🇨🇳</div>'+
+    '<div class="ci-name">'+esc(c.name)+'</div>'+
+    '<div class="ci-stats"><div><b>'+c.trips.length+'</b><span>打卡次数</span></div>'+
+    '<div><b>'+c.foods+'</b><span>美食数</span></div></div>';
+  card.style.display='block';
+}
+function closeCityInfo(){ const c=document.getElementById('cityInfoCard'); if(c) c.style.display='none'; }
+function openCitySearch(){
+  let m=document.getElementById('citySearchMask');
+  if(!m){
+    m=document.createElement('div'); m.id='citySearchMask'; m.className='city-search-mask';
+    m.onclick=function(e){ if(e.target===m) closeCitySearch(); };
+    m.innerHTML='<div class="city-search-box"><div class="csb-head">🏙️ 搜索添加城市</div><input id="citySearchInput" class="csb-input" placeholder="输入城市名，如：成都" oninput="citySearchSuggest()"><div id="citySearchResults" class="csb-results"></div></div>';
+    document.body.appendChild(m);
+    const inp=m.querySelector('#citySearchInput');
+    inp.onkeydown=function(e){ if(e.key==='Enter'){ const f=m.querySelector('#citySearchResults .csb-item'); if(f) f.click(); } };
+  }
+  m.style.display='flex';
+  const i=document.getElementById('citySearchInput');
+  if(i){ i.value=''; citySearchSuggest(); setTimeout(()=>i.focus(),50); }
+}
+function closeCitySearch(){ const m=document.getElementById('citySearchMask'); if(m) m.style.display='none'; }
+function citySearchSuggest(){
+  const i=document.getElementById('citySearchInput'), box=document.getElementById('citySearchResults');
+  if(!i||!box) return;
+  const q=i.value.trim().toLowerCase();
+  let list=Object.keys(CITY_COORD);
+  list = q? list.filter(c=>c.toLowerCase().indexOf(q)>=0) : list;
+  list=list.slice(0,12);
+  box.innerHTML = list.length? list.map(c=>'<div class="csb-item" data-city="'+esc(c)+'" onclick="addTravelCity(this.dataset.city)">📍 '+esc(c)+'</div>').join('') : '<div class="csb-empty">没有匹配的城市</div>';
+}
+function addTravelCity(city){
+  if(!city) return;
+  const arr=DB.get('travel',DEF.travel);
+  if(arr.some(t=>t.city===city)){ closeCitySearch(); setRoute('travel'); return; }
+  arr.push({ id:Date.now(), city:city, date:keyDate, with:'', loc:'', text:'', spots:[], foods:[], hotels:[], funs:[] });
+  DB.set('travel',arr);
+  try{ tripCityWeather(city); }catch(e){}
+  closeCitySearch();
+  setRoute('travel');
 }
 
 /* ===== 心情日记 ===== */
@@ -4295,17 +4475,12 @@ function viewTravel(){
     ${travelCity?`<div class="travel-weather-tip">🧳 正在「${esc(travelCity)}」旅行中 · 账本支出将自动归集到这座城市</div>`:''}
     ${lw&&lw.fromTravel?`<div class="travel-weather-tip">🌤 ${esc(lw.city||'')} · ${lw.temp}° · 衣橱已同步实时天气</div>`:''}
     <div class="travel-sum">
-      <div><b>${arr.length}</b><span>座城市</span></div>
+      <div><b>${new Set(arr.map(t=>t.city).filter(Boolean)).size}</b><span>座城市</span></div>
       <div><b>${spots}</b><span>处打卡</span></div>
       <div><b>${foods}</b><span>顿美食</span></div>
     </div>
     <div class="sec-title">🗺️ 我的旅行足迹地图</div>
     ${travelMapHTML()}
-    <div class="sec-title">🌍 我的旅行星球</div>
-    <div class="travel-globe-wrap">
-      <div id="travelGlobe"></div>
-      <div id="globeTooltip" class="globe-tooltip"></div>
-    </div>
     <div class="sec-title">✍️ 添加一次旅行</div>
     <div class="travel-form">
       <div class="row2">
@@ -4345,8 +4520,7 @@ function viewShort(){
 }
 function shortRead(){ const d=DB.get('shortRead',[]); if(!d.includes(keyDate))d.push(keyDate); DB.set('shortRead',d); setRoute('short'); }
 
-/* ---- 暴露给 3D 地球模块（ES module 无法直接读 const） ---- */
-window.DB=DB; window.DEF=DEF; window.CITY_COORD=CITY_COORD;
+/* travel 3D 地球逻辑已内联进主脚本，无需再暴露全局 */
 
 /* ===== 行情模块（真实公开API，禁止模拟数据） ===== */
 var MKT_TIMERS=[];
@@ -4865,298 +5039,7 @@ initLock();
 })();
 </script>
 
-<script type="module">
-import * as THREE from 'three';
-import ThreeGlobe from 'three-globe';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const GLOBE_RADIUS = 100;
-const MARKER_RADIUS = 1.6;
-let pendingGeocode = {};
-
-function getCITY() {
-  return (typeof window !== 'undefined' && window.CITY_COORD) ? window.CITY_COORD : {};
-}
-
-function esc(s) {
-  return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-}
-
-function latLonToVector3(lat, lon, radius) {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lon + 180) * (Math.PI / 180);
-  const x = -(radius * Math.sin(phi) * Math.cos(theta));
-  const z = (radius * Math.sin(phi) * Math.sin(theta));
-  const y = (radius * Math.cos(phi));
-  return new THREE.Vector3(x, y, z);
-}
-
-function generateOceanTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  const grd = ctx.createLinearGradient(0, 0, 0, 256);
-  grd.addColorStop(0, '#d6f0ff');
-  grd.addColorStop(1, '#c2e6ff');
-  ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, 512, 256);
-  return canvas.toDataURL('image/png');
-}
-
-async function fetchWorldCountries() {
-  try {
-    const res = await fetch('https://unpkg.com/world-atlas@2/countries-110m.json');
-    return await res.json();
-  } catch (e) {
-    return null;
-  }
-}
-
-async function geocodeCity(city) {
-  if (!city) return null;
-  if (pendingGeocode[city]) return pendingGeocode[city];
-  const p = (async () => {
-    try {
-      const res = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=zh');
-      const data = await res.json();
-      if (data.results && data.results.length) {
-        const r = data.results[0];
-        return { lat: r.latitude, lon: r.longitude };
-      }
-    } catch (e) {}
-    return null;
-  })();
-  pendingGeocode[city] = p;
-  return p;
-}
-
-async function ensureTripCoords(trip) {
-  if (typeof trip.lat === 'number' && typeof trip.lon === 'number') return true;
-  const local = getCITY()[trip.city];
-  if (local) {
-    trip.lat = local[1];
-    trip.lon = local[0];
-    return true;
-  }
-  const gc = await geocodeCity(trip.city);
-  if (gc) {
-    trip.lat = gc.lat;
-    trip.lon = gc.lon;
-    return true;
-  }
-  return false;
-}
-
-function jumpToTrip(id) {
-  const el = document.getElementById('trip_' + id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.style.transition = 'box-shadow .3s';
-    el.style.boxShadow = '0 0 0 3px #ffd1dc';
-    setTimeout(() => { el.style.boxShadow = ''; }, 1500);
-  }
-}
-
-async function initTravelGlobe() {
-  if (typeof window === 'undefined' || !window.DB) return;
-  const container = document.getElementById('travelGlobe');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const trips = window.DB.get('travel', (window.DEF && window.DEF.travel) || []).slice();
-  if (!trips.length) {
-    container.innerHTML = '<div class="globe-empty">快去记录你的第一趟旅行吧✨</div>';
-    return;
-  }
-
-  let changed = false;
-  for (const t of trips) {
-    const ok = await ensureTripCoords(t);
-    if (ok) changed = true;
-  }
-  if (changed) window.DB.set('travel', trips);
-
-  const validTrips = trips.filter(t => typeof t.lat === 'number' && typeof t.lon === 'number');
-  if (!validTrips.length) {
-    container.innerHTML = '<div class="globe-empty">城市坐标解析中，请稍后再试 🌍</div>';
-    return;
-  }
-
-  const w = container.clientWidth || 360;
-  const h = container.clientHeight || 420;
-
-  const scene = new THREE.Scene();
-  scene.background = null;
-  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-  camera.position.z = 260;
-
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-  renderer.setSize(w, h);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  container.appendChild(renderer.domElement);
-
-  const globe = new ThreeGlobe({ waitForGlobeReady: true, animateIn: true })
-    .globeImageUrl(generateOceanTexture())
-    .atmosphereColor('#a8d8ff')
-    .atmosphereAltitude(0.12)
-    .showAtmosphere(true);
-
-  const topo = await fetchWorldCountries();
-  if (topo && topo.objects && topo.objects.countries) {
-    try {
-      const countries = (await import('https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.mjs')).feature(topo, topo.objects.countries).features;
-      globe
-        .polygonsData(countries)
-        .polygonCapColor(() => '#f3e9d2')
-        .polygonSideColor(() => '#e6d5b5')
-        .polygonStrokeColor(() => 'rgba(0,0,0,0.04)')
-        .polygonAltitude(0.006);
-    } catch (e) {}
-  }
-
-  scene.add(globe);
-
-  const ambient = new THREE.AmbientLight(0xffffff, 1.1);
-  scene.add(ambient);
-  const dir = new THREE.DirectionalLight(0xffffff, 0.6);
-  dir.position.set(100, 80, 50);
-  scene.add(dir);
-
-  const markerGroup = new THREE.Group();
-  globe.add(markerGroup);
-  const markerMeshes = [];
-
-  validTrips.forEach((t, idx) => {
-    const pos = latLonToVector3(t.lat, t.lon, GLOBE_RADIUS + 2.2);
-    const geo = new THREE.SphereGeometry(MARKER_RADIUS, 16, 16);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xff6b8a });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.copy(pos);
-    mesh.userData = { trip: t, idx };
-    markerGroup.add(mesh);
-    markerMeshes.push(mesh);
-  });
-
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.6;
-  controls.enableZoom = true;
-  controls.minDistance = 150;
-  controls.maxDistance = 450;
-  controls.enablePan = false;
-
-  const tooltip = document.getElementById('globeTooltip');
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-  let hovered = null;
-  let downX = 0, downY = 0;
-
-  function showTooltip(x, y, t) {
-    if (!tooltip) return;
-    const text = (t.text || '').slice(0, 70) + ((t.text || '').length > 70 ? '…' : '');
-    tooltip.innerHTML = '<b>' + esc(t.city) + '</b><span>' + esc(t.date || '') + (t.with ? ' · ' + esc(t.with) : '') + '</span><p>' + esc(text) + '</p>';
-    const rect = container.getBoundingClientRect();
-    let left = x - rect.left + 14;
-    let top = y - rect.top + 14;
-    if (left + 220 > rect.width) left = x - rect.left - 230;
-    if (top + 100 > rect.height) top = y - rect.top - 100;
-    tooltip.style.left = left + 'px';
-    tooltip.style.top = top + 'px';
-    tooltip.classList.add('show');
-  }
-
-  function hideTooltip() {
-    if (tooltip) tooltip.classList.remove('show');
-  }
-
-  function onPointerMove(e) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(markerMeshes);
-    if (hits.length) {
-      const d = hits[0].object.userData.trip;
-      if (hovered !== d) {
-        hovered = d;
-        showTooltip(clientX, clientY, d);
-        renderer.domElement.style.cursor = 'pointer';
-      }
-    } else {
-      if (hovered) {
-        hovered = null;
-        hideTooltip();
-        renderer.domElement.style.cursor = 'grab';
-      }
-    }
-  }
-
-  function onDown(e) {
-    downX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
-    downY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
-  }
-
-  function onClick(e) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-    if (Math.abs(clientX - downX) > 6 || Math.abs(clientY - downY) > 6) return;
-    mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(markerMeshes);
-    if (hits.length) {
-      jumpToTrip(hits[0].object.userData.trip.id);
-    }
-  }
-
-  renderer.domElement.addEventListener('mousemove', onPointerMove);
-  renderer.domElement.addEventListener('touchstart', onPointerMove, { passive: true });
-  renderer.domElement.addEventListener('mousedown', onDown);
-  renderer.domElement.addEventListener('touchstart', onDown, { passive: true });
-  renderer.domElement.addEventListener('click', onClick);
-  renderer.domElement.addEventListener('touchend', onClick);
-
-  controls.addEventListener('start', () => {
-    controls.autoRotate = false;
-    hideTooltip();
-  });
-  controls.addEventListener('end', () => {
-    controls.autoRotate = true;
-  });
-
-  function animate() {
-    if (!container.isConnected) return;
-    const t = performance.now() / 1000;
-    markerMeshes.forEach((m, i) => {
-      const s = 1 + 0.22 * Math.sin(t * 2.2 + i);
-      m.scale.setScalar(s);
-    });
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-  }
-  animate();
-
-  window.addEventListener('resize', () => {
-    if (!container.isConnected) return;
-    const nw = container.clientWidth;
-    const nh = container.clientHeight || 420;
-    camera.aspect = nw / nh;
-    camera.updateProjectionMatrix();
-    renderer.setSize(nw, nh);
-  });
-}
-
-if (typeof window !== 'undefined') {
-  window.initTravelGlobe = initTravelGlobe;
-}
-</script>
 
 <div id="sheetMask" class="sheet-mask" onclick="if(event.target===this)closeSheet()"></div>
 <div id="sheet" class="sheet"></div>

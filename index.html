@@ -900,6 +900,111 @@
   .report-tab{font-size:13px;padding:10px 6px}
 }
 
+
+/* ===== 护肤日记模块 ===== */
+.skin-page{ padding:2px 0; }
+.skin-stat-row{ display:flex; gap:10px; margin:10px 0 14px; }
+.skin-stat{ flex:1; background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px 14px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+.skin-stat .v{ font-size:24px; font-weight:800; color:var(--kitty-red); }
+.skin-stat .l{ font-size:12px; color:#9a8a90; margin-top:2px; }
+.skin-streak{ margin:-4px 0 12px; font-size:13px; color:var(--kitty-red-dark); font-weight:600; }
+.skin-tabs{ display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:6px; -webkit-overflow-scrolling:touch; }
+.skin-tab{ flex:none; padding:9px 14px; border-radius:14px; background:#fff; border:1px solid var(--line); font-size:14px; font-weight:600; color:#9a8a90; cursor:pointer; white-space:nowrap; }
+.skin-tab.on{ background:linear-gradient(135deg,var(--kitty-pink),var(--kitty-red)); color:#fff; border:none; box-shadow:0 4px 14px rgba(232,72,92,.28); }
+.skin-section{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+/* 今日打卡 */
+.skin-checkin-wrap{ text-align:center; padding:14px 0 6px; }
+.skin-checkin{ width:140px; height:140px; border-radius:50%; border:none; margin:0 auto; cursor:pointer; font-size:16px; font-weight:800; line-height:1.5; color:#fff; background:linear-gradient(135deg,var(--kitty-pink),var(--kitty-red)); box-shadow:0 8px 22px rgba(232,72,92,.32); display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:inherit; }
+.skin-checkin.done{ background:#d9c9cf; box-shadow:none; color:#fff; }
+.skin-checkin .sub{ font-size:11px; font-weight:500; opacity:.9; margin-top:4px; }
+.skin-week{ display:flex; justify-content:space-between; margin-top:18px; }
+.skin-week .w{ display:flex; flex-direction:column; align-items:center; gap:6px; font-size:11px; color:#9a8a90; }
+.skin-week .dot{ width:14px; height:14px; border-radius:50%; border:2px solid var(--line); }
+.skin-week .dot.on{ background:var(--kitty-pink); border-color:var(--kitty-pink); }
+.skin-week .w.today .dot{ border-color:var(--kitty-red); box-shadow:0 0 0 3px rgba(232,72,92,.15); }
+/* 折叠区 */
+.skin-fold{ margin-top:12px; }
+.skin-fold>summary{ list-style:none; cursor:pointer; font-size:14px; font-weight:700; color:var(--kitty-red-dark); padding:8px 0; display:flex; align-items:center; gap:6px; }
+.skin-fold>summary::-webkit-details-marker{ display:none; }
+.skin-fold .fold-body{ padding:10px 0 4px; }
+/* 护肤品库 */
+.skin-prod{ display:flex; gap:12px; align-items:center; background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin-bottom:10px; position:relative; }
+.skin-prod-thumb{ width:62px; height:62px; border-radius:12px; object-fit:cover; flex:none; background:#faf0f4; cursor:pointer; }
+.skin-prod-thumb.ph{ display:flex; align-items:center; justify-content:center; font-size:30px; }
+.skin-prod-info{ flex:1; min-width:0; }
+.skin-prod-name{ font-weight:700; font-size:15px; }
+.skin-prod-brand{ font-size:12px; color:#9a8a90; margin-top:2px; }
+.skin-prod-tags{ margin-top:5px; display:flex; flex-wrap:wrap; gap:5px; }
+.skin-prod-status{ position:absolute; top:10px; right:12px; font-size:11px; padding:3px 8px; border-radius:10px; font-weight:700; }
+.st-using{ background:#ffe1ea; color:var(--kitty-red-dark); }
+.st-stock{ background:#ffe9cc; color:#c8791f; }
+.st-empty{ background:#ececec; color:#888; }
+.skin-rb{ position:absolute; top:38px; right:12px; font-size:11px; padding:2px 7px; border-radius:10px; font-weight:700; }
+.rb-red{ background:#ffe1ea; color:var(--kitty-red-dark); }
+.rb-black{ background:#5a5a5a; color:#fff; }
+.skin-expire{ font-size:11px; margin-top:4px; }
+.skin-expire.warn{ color:#c8791f; font-weight:700; }
+.skin-expire.over{ color:var(--kitty-red); font-weight:700; }
+.skin-cat-group{ margin-bottom:14px; }
+.skin-cat-title{ font-size:13px; font-weight:800; color:#9a8a90; margin:6px 0 8px; }
+.skin-filters{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.skin-pill{ padding:6px 11px; border-radius:12px; background:#fff; border:1px solid var(--line); font-size:12px; color:#9a8a90; cursor:pointer; }
+.skin-pill.on{ background:linear-gradient(135deg,var(--kitty-pink),var(--kitty-red)); color:#fff; border:none; }
+.skin-seg{ display:flex; gap:6px; flex-wrap:wrap; }
+.skin-seg button{ flex:1; min-width:90px; padding:9px 6px; border-radius:12px; border:1px solid var(--line); background:#fff; font-size:13px; font-weight:700; cursor:pointer; color:#9a8a90; font-family:inherit; }
+.skin-seg button.on-red{ background:#ffe1ea; color:var(--kitty-red-dark); border-color:var(--kitty-pink); }
+.skin-seg button.on-black{ background:#5a5a5a; color:#fff; border-color:#5a5a5a; }
+.skin-seg button.on-none{ background:#eef; color:#6a6; border-color:#bdf; }
+.skin-overdue-banner{ background:#fff0f2; border:1px solid var(--kitty-pink); border-radius:14px; padding:10px 12px; margin-bottom:12px; color:var(--kitty-red); font-weight:700; font-size:13px; cursor:pointer; }
+/* 肌肤记录时间线 */
+.skin-timeline{ position:relative; }
+.skin-tl-item{ display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line); }
+.skin-tl-date{ width:54px; flex:none; text-align:center; }
+.skin-tl-date .d{ font-weight:800; font-size:16px; }
+.skin-tl-date .w{ font-size:11px; color:#9a8a90; }
+.skin-tl-body{ flex:1; min-width:0; }
+.skin-score{ font-weight:800; font-size:15px; color:var(--kitty-red); }
+.skin-tl-note{ font-size:13px; color:#6a5a60; margin-top:3px; }
+.skin-tl-imgs{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.skin-tl-imgs img{ width:46px; height:46px; border-radius:8px; object-fit:cover; cursor:pointer; }
+/* 图表 */
+.skin-chart{ width:100%; overflow-x:auto; }
+.skin-chart svg{ width:100%; height:auto; display:block; }
+.skin-legend{ display:flex; flex-wrap:wrap; gap:8px 14px; margin-top:8px; font-size:12px; color:#6a5a60; }
+.skin-legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:middle; }
+.skin-ai{ background:linear-gradient(135deg,#fff5f7,#ffe9ef); border:1px solid var(--kitty-pink); border-radius:16px; padding:14px 16px; margin-top:12px; }
+.skin-ai .h{ font-weight:800; color:var(--kitty-red); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+.skin-ai .h button{ background:#fff; border:1px solid var(--kitty-pink); color:var(--kitty-red); border-radius:10px; padding:4px 10px; font-size:12px; cursor:pointer; font-family:inherit; }
+.skin-ai .b{ font-size:13px; line-height:1.6; color:#5a4a50; white-space:pre-line; }
+/* 空状态 */
+.skin-empty{ text-align:center; padding:40px 20px; color:#b0a0a6; }
+.skin-empty .e{ font-size:40px; }
+.skin-empty .t{ margin-top:10px; font-size:14px; }
+/* 底部弹层 */
+.sheet-mask{ position:fixed; inset:0; background:rgba(40,20,30,.4); z-index:9000; display:none; }
+.sheet-mask.show{ display:block; }
+.sheet{ position:fixed; left:0; right:0; bottom:0; background:#fff; border-radius:24px 24px 0 0; z-index:9001; padding:18px 18px calc(18px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; transform:translateY(100%); transition:transform .25s ease; box-shadow:0 -6px 24px rgba(0,0,0,.12); }
+.sheet.show{ transform:translateY(0); }
+.sheet h3{ font-size:17px; margin:0 0 12px; color:var(--kitty-red); }
+.sheet .close-x{ float:right; font-size:20px; cursor:pointer; color:#bba; border:none; background:none; }
+.sheet-row{ margin-bottom:12px; }
+.sheet-row label{ display:block; font-size:13px; font-weight:700; color:#6a5a60; margin-bottom:6px; }
+.sheet-row input[type=text], .sheet-row input[type=date], .sheet-row select, .sheet-row textarea{ width:100%; border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:14px; font-family:inherit; box-sizing:border-box; }
+.sheet-row textarea{ min-height:70px; resize:vertical; }
+.sheet-imgs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.sheet-imgs .si{ position:relative; width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--line); }
+.sheet-imgs .si .x{ position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--kitty-red); color:#fff; font-size:12px; line-height:18px; text-align:center; cursor:pointer; }
+.sheet-imgs .add{ width:56px; height:56px; border-radius:10px; border:1px dashed var(--line); background:#fff; color:#bba; font-size:24px; cursor:pointer; }
+/* 图片预览 */
+.imgprev-mask{ position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9500; display:none; align-items:center; justify-content:center; touch-action:none; }
+.imgprev-mask.show{ display:flex; }
+.imgprev-mask img{ max-width:94vw; max-height:80vh; border-radius:8px; transition:transform .1s; will-change:transform; }
+.imgprev-mask .pg{ position:absolute; top:16px; left:50%; transform:translateX(-50%); color:#fff; font-size:14px; background:rgba(0,0,0,.5); padding:4px 12px; border-radius:12px; }
+.imgprev-mask .close-x{ position:absolute; top:14px; left:16px; color:#fff; font-size:26px; cursor:pointer; z-index:2; }
+.imgprev-mask .del-x{ position:absolute; top:14px; right:16px; color:#fff; font-size:24px; cursor:pointer; z-index:2; display:none; }
+.imgprev-mask .nav{ position:absolute; top:50%; transform:translateY(-50%); color:#fff; font-size:36px; cursor:pointer; padding:10px; user-select:none; }
+.imgprev-mask .nav.l{ left:6px; } .imgprev-mask .nav.r{ right:6px; }
+
 </style>
 <script src="https://beacon.cdn.qq.com/sdk/4.5.9/beacon_web.min.js"></script><script>
 (function(){
@@ -1235,11 +1340,13 @@ const MODULES=[
   {id:"market",ic:"📈",t:"行情",sub:"金价 · A股 · 国际黄金"},
   {id:"travel",ic:"✈️",t:"旅行足迹",sub:"城市 · 打卡 · 美食 · 住宿"},
   {id:"goods",ic:"📦",t:"良品宜物",sub:"红榜黑榜好物档案"},
+  {id:"skin",ic:"🧴",t:"护肤日记",sub:"记录护肤 · 看见肌肤变化"},
   {id:"ledger",ic:"💰",t:"账本",sub:"每日花销 · 月统计"},
   {id:"mood",ic:"💭",t:"心情日记",sub:"情绪记录 · 回看起伏"},
 ];
 
 const DEF={
+  skin:{tab:'today',checkins:{},products:[],logs:[],reminders:{nightOn:false,nightTime:'22:00',maskPeriod:0,expireOn:true},aiSeed:0},
   plan:["喝够 8 杯水 💧","通勤听一集播客 🎧","背 20 个单词 📚","完成工作最重要 3 件事 ✅","运动 30 分钟 🏃","23:30 前睡觉 😴"],
   fitnessHabits:[
     {t:"帕梅拉 15min 肩颈放松",v:"",part:"肩颈"},
@@ -1373,6 +1480,7 @@ function setRoute(id){
   else if(id==='body') C.innerHTML=viewBody();
   else if(id==='goods') C.innerHTML=viewGoods();
   else if(id==='ledger') C.innerHTML=viewLedger();
+  else if(id==='skin') C.innerHTML=viewSkin();
   renderNav(); renderDock(); highlightNav(id);
   applyKittyImgs();  // 自动填 Hello Kitty 主题图
   window.scrollTo(0,0);
@@ -1380,6 +1488,7 @@ function setRoute(id){
   if(id==='recipe') setTimeout(rcBindImgPreview,0);
   if(id==='travel') setTimeout(()=>{ if(typeof window.initTravelGlobe==='function') window.initTravelGlobe(); },0);
   if(id==='market') setTimeout(mktStartTimers,0);
+  if(id==='skin') checkSkinReminders();
 }
 function highlightNav(id){}
 function openDrawer(){document.getElementById('drawer').classList.add('show')}
@@ -2282,7 +2391,8 @@ function delBody(date){ let log=bodyLog(); log=log.filter(x=>x.date!==date); set
 /* ===== 良品宜物 ===== */
 function viewGoods(){
   const items=goodsLog();
-  return `<div class="page-title">📦 良品宜物</div><div class="page-desc">买过的东西，红榜收藏 / 黑榜避坑</div>
+  return `<div class="page-title">📦 良品宜物</div>
+  <button class="btn btn-pink" style="width:100%;margin-bottom:12px" onclick="openGoodsImportFromSkin()">🧴 从护肤品库导入</button><div class="page-desc">买过的东西，红榜收藏 / 黑榜避坑</div>
     <div class="sec-title">添加一件</div>
     <div class="add" style="flex-wrap:wrap">
       <input id="g_name" placeholder="物品名" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')addGoods()">
@@ -2303,12 +2413,511 @@ function viewGoods(){
     </div>`;
 }
 function goodsRows(list){ return list.length?list.map(x=>`<div class="grow">
-  <div class="g-top"><b>${esc(x.name)}</b><span class="tag">${esc(x.cat||'')}</span><span class="stars">${'★'.repeat(x.star)}${'☆'.repeat(5-x.star)}</span>${x.repurchase?'<span class="tag" style="background:#e0f7d6;color:#5a9e3a">会回购</span>':''}<button class="del" onclick="delGoods(${x.id})" style="background:none;border:none;color:#d4b2bc;font-size:18px;cursor:pointer">×</button></div>
+  <div class="g-top">${x.fromSkin?'<span title="来自护肤日记" style="cursor:pointer" onclick="setRoute(\'skin\');event.stopPropagation()">🧴</span> ':''}<b>${esc(x.name)}</b><span class="tag">${esc(x.cat||'')}</span><span class="stars">${'★'.repeat(x.star)}${'☆'.repeat(5-x.star)}</span>${x.repurchase?'<span class="tag" style="background:#e0f7d6;color:#5a9e3a">会回购</span>':''}<button class="del" onclick="delGoods(${x.id})" style="background:none;border:none;color:#d4b2bc;font-size:18px;cursor:pointer">×</button></div>
   <div class="g-meta">¥${x.price||'?'} · ${x.type}</div>
   ${x.pros?`<div class="g-p">👍 ${esc(x.pros)}</div>`:''}${x.cons?`<div class="g-c">👎 ${esc(x.cons)}</div>`:''}
 </div>`).join(''):'<p style="color:var(--ink-soft)">还没有记录</p>'; }
 function addGoods(){ const name=document.getElementById('g_name').value.trim(); if(!name)return; const items=goodsLog(); items.push({id:Date.now(),name,cat:document.getElementById('g_cat').value.trim(),price:+document.getElementById('g_price').value||0,star:+document.getElementById('g_star').value,type:document.getElementById('g_type').value,pros:document.getElementById('g_pros').value.trim(),cons:document.getElementById('g_cons').value.trim(),repurchase:document.getElementById('g_rep').checked,created:keyDate}); setGoodsLog(items); setRoute('goods'); }
-function delGoods(id){ let items=goodsLog(); items=items.filter(x=>x.id!==id); setGoodsLog(items); setRoute('goods'); }
+function delGoods(id){
+  let items=goodsLog(); const rec=items.find(x=>x.id===id);
+  if(rec&&rec.fromSkin){
+    if(!confirm('该记录来自护肤日记，是否同时取消护肤品的红黑榜标记？')) return;
+    const skin=skinGet(); const p=skin.products.find(x=>x.id===rec.skinId);
+    if(p){ p.rb=''; skinSet(skin); }
+  }
+  items=items.filter(x=>x.id!==id); setGoodsLog(items); setRoute('goods');
+}
+
+/* ===== 护肤日记模块 ===== */
+const SKIN_CATS=['卸妆','洁面','爽肤水','精华','眼霜','乳液','面霜','防晒','面膜','其他'];
+const SKIN_PROBS=['干燥','出油','长痘','泛红','敏感','暗沉','毛孔粗大','细纹','无问题'];
+function skinYmd(d){ return d.toISOString().slice(0,10); }
+function skinAddDays(s,n){ const d=new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return skinYmd(d); }
+function skinWeekday(s){ const w=['日','一','二','三','四','五','六']; return w[new Date(s+'T00:00:00').getDay()]; }
+function skinDaysBetween(a,b){ return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000); }
+function skinGet(){ return DB.get('skin',DEF.skin); }
+function skinSet(v){ DB.set('skin',v); }
+function skinNewId(){ return 'sk'+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36); }
+
+/* ---- 全局图片预览（轻量，支持左右切换/双击缩放/页码/删除）---- */
+let _ip={urls:[],i:0,scale:1,editable:false,onDel:null,startX:0,moved:false};
+function openImagePreview(urls,idx,editable,onDel){
+  if(!urls||!urls.length) return;
+  _ip={urls:urls.slice(),i:idx||0,scale:1,editable:!!editable,onDel:onDel||null,startX:0,moved:false};
+  const m=document.getElementById('imgprevMask'); if(!m) return;
+  m.classList.add('show');
+  skinIpRender();
+}
+function skinIpRender(){
+  const m=document.getElementById('imgprevMask'); if(!m) return;
+  const img=m.querySelector('img');
+  img.src=_ip.urls[_ip.i];
+  img.style.transform='scale(1)';
+  m.querySelector('.pg').textContent=(_ip.i+1)+'/'+_ip.urls.length;
+  m.querySelector('.del-x').style.display=_ip.editable?'block':'none';
+}
+function skinIpClose(){ document.getElementById('imgprevMask').classList.remove('show'); }
+function skinIpNav(dir){ _ip.i=(_ip.i+dir+_ip.urls.length)%_ip.urls.length; skinIpRender(); }
+function skinIpZoom(){ const img=document.getElementById('imgprevMask').querySelector('img'); _ip.scale=_ip.scale>1?1:2; img.style.transform='scale('+_ip.scale+')'; }
+function skinIpDel(){
+  if(!_ip.editable||!_ip.onDel) return;
+  const removed=_ip.urls[_ip.i];
+  _ip.urls.splice(_ip.i,1);
+  if(_ip.onDel) _ip.onDel(_ip.i,removed);
+  if(!_ip.urls.length){ skinIpClose(); return; }
+  _ip.i=Math.min(_ip.i,_ip.urls.length-1); skinIpRender();
+}
+function skinIpBind(){
+  const m=document.getElementById('imgprevMask'); if(!m||m.dataset.bound) return; m.dataset.bound='1';
+  m.querySelector('.close-x').onclick=skinIpClose;
+  m.querySelector('.del-x').onclick=skinIpDel;
+  m.querySelector('.nav.l').onclick=()=>skinIpNav(-1);
+  m.querySelector('.nav.r').onclick=()=>skinIpNav(1);
+  m.querySelector('img').onclick=skinIpZoom;
+  m.querySelector('img').ondblclick=skinIpZoom;
+  m.onclick=(e)=>{ if(e.target===m) skinIpClose(); };
+  let sx=0,sy=0;
+  m.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; _ip.moved=false; },{passive:true});
+  m.addEventListener('touchmove',e=>{ if(Math.abs(e.touches[0].clientX-sx)>40){ _ip.moved=true; } },{passive:true});
+  m.addEventListener('touchend',e=>{ if(_ip.moved){ const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>40) skinIpNav(dx<0?1:-1); } },{passive:true});
+}
+
+/* ---- 底部弹层 ---- */
+function openSheet(html){
+  const m=document.getElementById('sheetMask'), s=document.getElementById('sheet');
+  if(!m||!s) return;
+  s.innerHTML='<button class="close-x" onclick="closeSheet()">×</button>'+html;
+  m.classList.add('show');
+  requestAnimationFrame(()=>s.classList.add('show'));
+}
+function closeSheet(){
+  const m=document.getElementById('sheetMask'), s=document.getElementById('sheet');
+  if(!m||!s) return;
+  s.classList.remove('show');
+  setTimeout(()=>m.classList.remove('show'),250);
+}
+let _skinTmpImgs=[];
+function skinPickImgs(input, max){
+  max=max||3;
+  const files=input.files; if(!files||!files.length) return;
+  let pending=files.length;
+  for(let i=0;i<files.length && _skinTmpImgs.length<max; i++){
+    const r=new FileReader();
+    r.onload=()=>{ _skinTmpImgs.push(r.result); pending--; if(pending<=0||i===files.length-1) skinRenderTmpImgs(input); };
+    r.readAsDataURL(files[i]);
+  }
+  if(_skinTmpImgs.length>=max){ input.value=''; }
+}
+function skinRenderTmpImgs(){ const box=document.getElementById('skinTmpImgs'); if(box) box.innerHTML=_skinTmpImgs.map((u,i)=>`<div class="si" style="background:url(${u}) center/cover"><div class="x" onclick="skinDelTmpImg(${i})">×</div></div>`).join('')+(_skinTmpImgs.length<3?'<div class="add" onclick="document.getElementById(\'skinFile\').click()">+</div>':''); }
+function skinDelTmpImg(i){ _skinTmpImgs.splice(i,1); skinRenderTmpImgs(); }
+
+/* ---- 主框架 ---- */
+function viewSkin(){
+  skinIpBind();
+  const skin=skinGet();
+  const usingCnt=skin.products.filter(p=>p.status==='using').length;
+  const avg=skinAvgScore();
+  const streak=skinStreak();
+  const tabs=[['today','📅 今日打卡'],['products','🧴 护肤品库'],['logs','📸 肌肤记录'],['trend','📊 趋势分析']];
+  return `<div class="skin-page page-title">🧴 护肤日记</div>
+  <div class="page-desc">记录每一次护肤 · 看见肌肤变化</div>
+  <div class="skin-streak">🔥 连续打卡 ${streak} 天</div>
+  <div class="skin-stat-row">
+    <div class="skin-stat"><div class="v">${usingCnt}</div><div class="l">在用护肤品</div></div>
+    <div class="skin-stat"><div class="v">${avg?avg.toFixed(1):'—'}</div><div class="l">皮肤平均分</div></div>
+  </div>
+  <div class="skin-tabs">${tabs.map(t=>`<button class="skin-tab ${skin.tab===t[0]?'on':''}" onclick="skinTab('${t[0]}')">${t[1]}</button>`).join('')}</div>
+  <div id="skinContent">${skinContentHTML()}</div>
+  <button onclick="openSkinSettings()" style="position:fixed;right:14px;bottom:74px;z-index:50;width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.9);box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:18px;cursor:pointer" title="护肤设置">⚙️</button>`;
+}
+function skinTab(t){ const skin=skinGet(); skin.tab=t; skinSet(skin); const C=document.getElementById('skinContent'); if(C) C.innerHTML=skinContentHTML(); document.querySelectorAll('.skin-tab').forEach(b=>b.classList.toggle('on', b.textContent.includes(({today:'今日打卡',products:'护肤品库',logs:'肌肤记录',trend:'趋势分析'})[t]))); checkSkinReminders(); }
+function skinContentHTML(){
+  const t=skinGet().tab;
+  if(t==='products') return skinProductsHTML();
+  if(t==='logs') return skinTimelineHTML();
+  if(t==='trend') return skinTrendHTML();
+  return skinTodayHTML();
+}
+function skinAvgScore(){
+  const logs=skinGet().logs; if(!logs.length) return 0;
+  // 近30天平均分
+  const recent=logs.filter(l=>skinDaysBetween(l.date,keyDate)<=30);
+  const arr=recent.length?recent:logs;
+  return arr.reduce((a,b)=>a+b.score,0)/arr.length;
+}
+function skinStreak(){
+  let s=0; let d=keyDate;
+  const ck=skinGet().checkins;
+  if(!ck[d]) return 0;
+  while(ck[d]){ s++; d=skinAddDays(d,-1); }
+  return s;
+}
+
+/* ---- Tab1 今日打卡 ---- */
+function skinTodayHTML(){
+  const skin=skinGet();
+  const done=!!skin.checkins[keyDate];
+  const used=skin.used[keyDate]||[];
+  const note=skin.notes[keyDate]||'';
+  const usingProds=skin.products.filter(p=>p.status==='using');
+  return `<div class="skin-section">
+    <div class="skin-checkin-wrap">
+      <button class="skin-checkin ${done?'done':''}" onclick="skinCheckin()">
+        <div>${done?'✅ 今日已打卡':'✅ 点击打卡'}</div>
+        <div class="sub">${done?('打卡时间 '+skin.checkins[keyDate]):'记录今天的护肤'}</div>
+        ${done?'<div class="sub" style="margin-top:6px;text-decoration:underline">重新打卡</div>':''}
+      </button>
+    </div>
+    <div class="skin-week">${skinWeekHTML()}</div>
+  </div>
+  <details class="skin-fold skin-section" style="margin-top:0">
+    <summary>🧴 今天用了什么</summary>
+    <div class="fold-body">${usingProds.length?usingProds.map(p=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);cursor:pointer">
+      <input type="checkbox" ${used.includes(p.id)?'checked':''} onchange="skinToggleUsed('${p.id}',this.checked)">
+      <span>${esc(p.name)}</span>${p.brand?`<span style="font-size:12px;color:#9a8a90">· ${esc(p.brand)}</span>`:''}
+    </label>`).join(''):'<p style="color:#9a8a90;font-size:13px">暂无在用护肤品，去「护肤品库」添加吧</p>'}</div>
+  </details>
+  <details class="skin-fold skin-section" style="margin-top:0">
+    <summary>📝 今日护肤感受（选填）</summary>
+    <div class="fold-body">
+      <textarea id="skinNote" placeholder="如：今天皮肤有点干" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font-family:inherit;min-height:64px;box-sizing:border-box">${esc(note)}</textarea>
+      <button class="btn btn-pink" style="width:100%;margin-top:8px" onclick="skinSaveNote()">保存备注</button>
+    </div>
+  </details>`;
+}
+function skinCheckin(){
+  const skin=skinGet();
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0');
+  skin.checkins[keyDate]=hh+':'+mm;
+  skinSet(skin);
+  document.getElementById('skinContent').innerHTML=skinTodayHTML();
+}
+function skinToggleUsed(id,on){
+  const skin=skinGet();
+  if(!skin.used[keyDate]) skin.used[keyDate]=[];
+  if(on){ if(!skin.used[keyDate].includes(id)) skin.used[keyDate].push(id); }
+  else { skin.used[keyDate]=skin.used[keyDate].filter(x=>x!==id); if(!skin.used[keyDate].length) delete skin.used[keyDate]; }
+  skinSet(skin);
+}
+function skinSaveNote(){
+  const v=document.getElementById('skinNote').value.trim();
+  const skin=skinGet();
+  if(v) skin.notes[keyDate]=v; else delete skin.notes[keyDate];
+  skinSet(skin);
+  alert('备注已保存');
+}
+function skinWeekHTML(){
+  let h='';
+  for(let i=6;i>=0;i--){ const d=skinAddDays(keyDate,-i); const on=!!skinGet().checkins[d]; const isToday=d===keyDate; h+=`<div class="w ${isToday?'today':''}"><div class="dot ${on?'on':''}"></div><div>${skinWeekday(d)}</div></div>`; }
+  return h;
+}
+
+/* ===== 护肤日记模块 B：库 / 记录 / 趋势 / 设置 / 联动 ===== */
+let _skinEditId=null, _skinCats=[], _skinRb='', _skinStatus='using', _skinProbsSel=[];
+let skinFilterRB='all', skinFilterStatus='all', skinFilterCat='all', skinSort='time';
+
+/* ---- 到期计算 ---- */
+function skinExpireDays(p){
+  if(!p.openDate || !p.shelf) return null;
+  const due=skinAddDays(p.openDate, p.shelf*30);
+  return skinDaysBetween(keyDate, due);
+}
+function skinExpireInfo(p){
+  const d=skinExpireDays(p); if(d===null) return '';
+  if(d<0) return '<div class="skin-expire over">⚠️ 已过期 '+Math.abs(d)+' 天，建议停用</div>';
+  if(d<30) return '<div class="skin-expire warn">🟠 即将过期（剩 '+d+' 天）</div>';
+  return '<div class="skin-expire" style="color:#9a8a90">🟢 剩余 '+d+' 天（'+skinAddDays(p.openDate,p.shelf*30)+' 到期）</div>';
+}
+
+/* ---- Tab2 护肤品库 ---- */
+function skinProductsHTML(){
+  const skin=skinGet();
+  let list=skin.products.slice();
+  if(skinFilterRB!=='all') list=list.filter(p=>p.rb===skinFilterRB);
+  if(skinFilterStatus!=='all') list=list.filter(p=>p.status===skinFilterStatus);
+  if(skinFilterCat!=='all') list=list.filter(p=>(p.cats||[]).includes(skinFilterCat));
+  if(skinSort==='open') list.sort((a,b)=>(skinExpireDays(a)==null?9999:skinExpireDays(a))-(skinExpireDays(b)==null?9999:skinExpireDays(b)));
+  else if(skinSort==='name') list.sort((a,b)=>a.name.localeCompare(b.name,'zh'));
+  const overdue=skin.products.filter(p=>{ const d=skinExpireDays(p); return d!==null&&d<0; });
+  const rbMap={all:'全部',red:'红榜',black:'黑榜',none:'未标记'};
+  const stMap={all:'全部',using:'在用',stock:'囤货',empty:'空瓶'};
+  const sortMap={time:'添加时间',open:'到期时间',name:'名称'};
+  const filters=`<div class="skin-filters">${['all','red','black','none'].map(r=>`<span class="skin-pill ${skinFilterRB===r?'on':''}" onclick="skinSetFilter('rb','${r}')">${rbMap[r]}</span>`).join('')} ${['all','using','stock','empty'].map(s=>`<span class="skin-pill ${skinFilterStatus===s?'on':''}" onclick="skinSetFilter('status','${s}')">${stMap[s]}</span>`).join('')}</div>
+  <div class="skin-filters">品类：${['all'].concat(SKIN_CATS).map(c=>`<span class="skin-pill ${skinFilterCat===c?'on':''}" onclick="skinSetFilter('cat','${c}')">${c==='all'?'全部':c}</span>`).join('')}</div>
+  <div class="skin-filters">排序：${['time','open','name'].map(s=>`<span class="skin-pill ${skinSort===s?'on':''}" onclick="skinSortBy('${s}')">${sortMap[s]}</span>`).join('')}</div>`;
+  const banner=overdue.length?`<div class="skin-overdue-banner" onclick="skinFilterRB='none';skinFilterStatus='all';skinFilterCat='all';document.getElementById('skinContent').innerHTML=skinProductsHTML()">⚠️ 有 ${overdue.length} 件产品已过期，点此查看</div>`:'';
+  let body;
+  if(!list.length){ body='<p style="color:#b0a0a6;text-align:center;padding:24px">还没有护肤品，点右上角「＋ 添加」开始记录 🧴</p>'; }
+  else if(skinFilterRB!=='all'||skinFilterStatus!=='all'||skinFilterCat!=='all'||skinSort!=='time'){ body=list.map(skinProdCard).join(''); }
+  else {
+    const groups={};
+    list.forEach(p=>(p.cats&&p.cats.length?p.cats:['其他']).forEach(c=>{ (groups[c]=groups[c]||[]).push(p); }));
+    body=Object.keys(groups).map(c=>`<div class="skin-cat-group"><div class="skin-cat-title">${c}（${groups[c].length}）</div>${groups[c].map(skinProdCard).join('')}</div>`).join('');
+  }
+  return `<button class="btn btn-pink" style="width:100%;margin-bottom:12px" onclick="openAddProduct()">＋ 添加护肤品</button>${banner}${filters}<div id="skinProdList">${body}</div>`;
+}
+function skinSetFilter(kind,v){ if(kind==='rb')skinFilterRB=v; if(kind==='status')skinFilterStatus=v; if(kind==='cat')skinFilterCat=v; document.getElementById('skinContent').innerHTML=skinProductsHTML(); }
+function skinSortBy(s){ skinSort=s; document.getElementById('skinContent').innerHTML=skinProductsHTML(); }
+function skinProdCard(p){
+  const thumb=p.pics&&p.pics.length?`<img class="skin-prod-thumb" src="${p.pics[0]}" onclick="openImagePreview(${JSON.stringify(p.pics).replace(/"/g,'&quot;')},0);event.stopPropagation()">`:`<div class="skin-prod-thumb ph">🧴</div>`;
+  const rbTag=p.rb==='red'?'<span class="skin-rb rb-red">❤️ 推荐</span>':(p.rb==='black'?'<span class="skin-rb rb-black">🖤 避坑</span>':'');
+  const stLabel={'using':'在用','stock':'囤货','empty':'空瓶'}[p.status];
+  return `<div class="skin-prod" onclick="openProductDetail('${p.id}')">
+    ${thumb}
+    <div class="skin-prod-info">
+      <div class="skin-prod-name">${esc(p.name)}</div>
+      ${p.brand?`<div class="skin-prod-brand">${esc(p.brand)}</div>`:''}
+      <div class="skin-prod-tags">${(p.cats||[]).map(c=>`<span class="tag">${c}</span>`).join('')}</div>
+      ${rbTag}${skinExpireInfo(p)}
+    </div>
+    <span class="skin-prod-status st-${p.status}">${stLabel}</span>
+  </div>`;
+}
+function openAddProduct(id){
+  _skinTmpImgs=[]; _skinEditId=id||null;
+  let p=null; if(id) p=skinGet().products.find(x=>x.id===id);
+  _skinCats=p?(p.cats||[]).slice():[]; _skinRb=p?p.rb:''; _skinStatus=p?p.status:'using';
+  const catsHtml=SKIN_CATS.map(c=>`<button type="button" class="skin-pill ${_skinCats.includes(c)?'on':''}" onclick="skinCatsToggle('${c}')">${c}</button>`).join('');
+  const rb=p?p.rb:''; const status=p?p.status:'using';
+  const html=`<h3>${id?'编辑护肤品':'添加护肤品'}</h3>
+    <div class="sheet-row"><label>产品名称 *</label><input type="text" id="sp_name" value="${esc(p?p.name:'')}" placeholder="如：小棕瓶精华"></div>
+    <div class="sheet-row"><label>品类（可多选）</label><div class="skin-filters" id="sp_cats">${catsHtml}</div></div>
+    <div class="sheet-row"><label>品牌</label><input type="text" id="sp_brand" value="${esc(p?p.brand:'')}" placeholder="选填"></div>
+    <div class="sheet-row"><label>红黑榜</label><div class="skin-seg" id="sp_rb">
+      <button type="button" class="${rb==='red'?'on-red':''}" onclick="skinRbPick('red')">❤️ 红榜（推荐）</button>
+      <button type="button" class="${rb==='black'?'on-black':''}" onclick="skinRbPick('black')">🖤 黑榜（避坑）</button>
+      <button type="button" class="${rb===''?'on-none':''}" onclick="skinRbPick('')">未标记</button></div></div>
+    <div class="sheet-row"><label>开封日期</label><input type="date" id="sp_open" value="${p?p.openDate:''}"></div>
+    <div class="sheet-row"><label>保质期</label><select id="sp_shelf">${[6,12,24,36].map(m=>`<option value="${m}" ${((p?p.shelf:12)===m)?'selected':''}>${m}个月</option>`).join('')}</select></div>
+    <div class="sheet-row"><label>产品图片（最多3张）</label><input type="file" id="skinFile" accept="image/*" multiple onchange="skinPickImgs(this,3)" style="display:none"><div class="sheet-imgs" id="skinTmpImgs"></div><button type="button" class="skin-pill" onclick="document.getElementById('skinFile').click()">📷 上传图片</button></div>
+    <div class="sheet-row"><label>使用状态</label><div class="skin-seg" id="sp_status">
+      <button type="button" class="${status==='using'?'on-red':''}" onclick="skinStatusPick('using')">在用</button>
+      <button type="button" class="${status==='stock'?'on-black':''}" onclick="skinStatusPick('stock')">囤货</button>
+      <button type="button" class="${status==='empty'?'on-none':''}" onclick="skinStatusPick('empty')">空瓶</button></div></div>
+    <button class="btn btn-pink" style="width:100%" onclick="skinSaveProduct()">保存</button>`;
+  openSheet(html);
+  if(p&&p.pics){ _skinTmpImgs=p.pics.slice(); } skinRenderTmpImgs();
+}
+function skinCatsToggle(c){ if(_skinCats.includes(c)) _skinCats=_skinCats.filter(x=>x!==c); else _skinCats.push(c); document.querySelectorAll('#sp_cats button').forEach(b=>b.classList.toggle('on', _skinCats.includes(b.textContent))); }
+function skinRbPick(v){ _skinRb=v; const m={'red':'on-red','black':'on-black','':'on-none'}; document.querySelectorAll('#sp_rb button').forEach(b=>b.classList.remove('on-red','on-black','on-none')); document.querySelectorAll('#sp_rb button')[['red','black',''].indexOf(v)].classList.add(m[v]); }
+function skinStatusPick(v){ _skinStatus=v; const m={'using':'on-red','stock':'on-black','empty':'on-none'}; document.querySelectorAll('#sp_status button').forEach(b=>b.classList.remove('on-red','on-black','on-none')); document.querySelectorAll('#sp_status button')[['using','stock','empty'].indexOf(v)].classList.add(m[v]); }
+function skinSaveProduct(){
+  const name=document.getElementById('sp_name').value.trim(); if(!name){ alert('请填写产品名称'); return; }
+  const brand=document.getElementById('sp_brand').value.trim();
+  const openDate=document.getElementById('sp_open').value;
+  const shelf=+document.getElementById('sp_shelf').value;
+  const skin=skinGet();
+  const p={ name, brand, cats:_skinCats.slice(), pics:_skinTmpImgs.slice(), rb:_skinRb, openDate, shelf, status:_skinStatus };
+  if(_skinEditId){ const i=skin.products.findIndex(x=>x.id===_skinEditId); if(i>=0){ p.id=skin.products[i].id; skin.products[i]=Object.assign({},skin.products[i],p); } }
+  else { p.id=skinNewId(); skin.products.push(p); }
+  skinSet(skin); syncSkinToGoods(p); closeSheet();
+  if(skinGet().tab==='products') document.getElementById('skinContent').innerHTML=skinProductsHTML();
+}
+function delProduct(id){ if(!confirm('确定删除这件护肤品？')) return; const skin=skinGet(); skin.products=skin.products.filter(x=>x.id!==id); skinSet(skin); removeFromGoods(id); if(skinGet().tab==='products') document.getElementById('skinContent').innerHTML=skinProductsHTML(); }
+function setProductRB(id, rb){ const skin=skinGet(); const p=skin.products.find(x=>x.id===id); if(!p) return; p.rb=rb; skinSet(skin); syncSkinToGoods(p); if(skinGet().tab==='products') document.getElementById('skinContent').innerHTML=skinProductsHTML(); }
+function openProductDetail(id){
+  const p=skinGet().products.find(x=>x.id===id); if(!p) return;
+  const rbLabel={'red':'❤️ 红榜推荐','black':'🖤 黑榜避坑','':'未标记'}[p.rb];
+  const html=`<h3>${esc(p.name)}</h3>
+    ${p.brand?`<div style="font-size:13px;color:#9a8a90;margin-bottom:8px">${esc(p.brand)}</div>`:''}
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${(p.cats||[]).map(c=>`<span class="tag">${c}</span>`).join('')}<span class="skin-rb ${p.rb==='red'?'rb-red':(p.rb==='black'?'rb-black':'')}">${rbLabel}</span></div>
+    ${p.pics&&p.pics.length?`<div class="sheet-imgs" style="margin-bottom:10px">${p.pics.map((u,i)=>`<img class="si" src="${u}" onclick="openImagePreview(${JSON.stringify(p.pics).replace(/"/g,'&quot;')},${i})">`).join('')}</div>`:''}
+    ${skinExpireInfo(p)}
+    <div style="display:flex;gap:8px;margin:12px 0">
+      <button class="skin-seg" style="flex:1" onclick="setProductRB('${id}','red');closeSheet();openProductDetail('${id}')">❤️ 标红榜</button>
+      <button class="skin-seg" style="flex:1" onclick="setProductRB('${id}','black');closeSheet();openProductDetail('${id}')">🖤 标黑榜</button>
+      <button class="skin-seg" style="flex:1" onclick="setProductRB('${id}','');closeSheet();openProductDetail('${id}')">取消标记</button>
+    </div>
+    <button class="btn btn-soft" style="width:100%;margin-bottom:8px" onclick="closeSheet();openAddProduct('${id}')">✏️ 编辑</button>
+    <button style="width:100%;border:1px solid var(--kitty-red);color:var(--kitty-red);background:#fff;border-radius:12px;padding:11px;cursor:pointer;font-family:inherit" onclick="closeSheet();delProduct('${id}')">🗑 删除</button>`;
+  openSheet(html);
+}
+
+/* ---- Tab3 肌肤记录 ---- */
+function openAddSkinLog(){
+  _skinTmpImgs=[]; _skinProbsSel=[];
+  const probHtml=SKIN_PROBS.map(p=>`<span class="skin-pill" onclick="skinToggleProb('${p}')">${p}</span>`).join('');
+  const html=`<h3>记录今日肌肤</h3>
+    <div class="sheet-row"><label>皮肤状态评分：<b id="sp_score_v">3</b> 分</label>
+      <input type="range" id="sp_score" min="1" max="5" value="3" oninput="document.getElementById('sp_score_v').textContent=this.value" style="width:100%"></div>
+    <div class="sheet-row"><label>皮肤问题（可多选）</label><div class="skin-filters" id="sp_probs">${probHtml}</div></div>
+    <div class="sheet-row"><label>皮肤照片（最多3张）</label><input type="file" id="skinFile" accept="image/*" multiple onchange="skinPickImgs(this,3)" style="display:none"><div class="sheet-imgs" id="skinTmpImgs"></div><button type="button" class="skin-pill" onclick="document.getElementById('skinFile').click()">📷 上传照片</button></div>
+    <div class="sheet-row"><label>备注</label><textarea id="sp_note" placeholder="如：熬夜后冒了一颗痘"></textarea></div>
+    <div class="sheet-row"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="sp_period"> 生理期</label></div>
+    <button class="btn btn-pink" style="width:100%" onclick="saveSkinLog()">保存记录</button>`;
+  openSheet(html); skinRenderTmpImgs();
+}
+function skinToggleProb(p){ if(_skinProbsSel.includes(p))_skinProbsSel=_skinProbsSel.filter(x=>x!==p); else _skinProbsSel.push(p); document.querySelectorAll('#sp_probs .skin-pill').forEach(b=>b.classList.toggle('on',_skinProbsSel.includes(b.textContent))); }
+function saveSkinLog(){
+  const score=+document.getElementById('sp_score').value;
+  const note=document.getElementById('sp_note').value.trim();
+  const period=document.getElementById('sp_period').checked;
+  const skin=skinGet();
+  skin.logs.push({ id:skinNewId(), date:keyDate, score, problems:_skinProbsSel.slice(), pics:_skinTmpImgs.slice(), note, period });
+  skinSet(skin); closeSheet();
+  const t=skinGet().tab;
+  if(t==='logs') document.getElementById('skinContent').innerHTML=skinTimelineHTML();
+  else if(t==='trend') document.getElementById('skinContent').innerHTML=skinTrendHTML();
+}
+function skinTimelineHTML(){
+  const skin=skinGet();
+  if(!skin.logs.length) return '<div class="skin-empty"><div class="e">📸</div><div class="t">还没有肌肤记录，记录今天的皮肤状态吧</div></div>';
+  const byDay={};
+  skin.logs.forEach(l=>{ (byDay[l.date]=byDay[l.date]||[]).push(l); });
+  const days=Object.keys(byDay).sort().reverse();
+  const html=days.map(d=>{
+    const arr=byDay[d];
+    const avg=(arr.reduce((a,b)=>a+b.score,0)/arr.length).toFixed(1);
+    const probs=[...new Set(arr.flatMap(x=>x.problems||[]))];
+    const note=arr.map(x=>x.note).filter(Boolean).join('；');
+    const pics=arr.flatMap(x=>x.pics||[]);
+    return `<div class="skin-tl-item">
+      <div class="skin-tl-date"><div class="d">${d.slice(5)}</div><div class="w">周${skinWeekday(d)}</div></div>
+      <div class="skin-tl-body">
+        <div class="skin-score">★ ${avg} 分</div>
+        ${probs.length?`<div style="margin-top:4px">${probs.map(p=>`<span class="tag">${p}</span>`).join('')}</div>`:''}
+        ${note?`<div class="skin-tl-note">${esc(note)}</div>`:''}
+        ${pics.length?`<div class="skin-tl-imgs">${pics.map((u,i)=>`<img src="${u}" onclick="openImagePreview(${JSON.stringify(pics).replace(/"/g,'&quot;')},${i})">`).join('')}</div>`:''}
+      </div></div>`;
+  }).join('');
+  return `<button class="btn btn-pink" style="width:100%;margin-bottom:12px" onclick="openAddSkinLog()">＋ 记录今日肌肤</button>${html}`;
+}
+
+/* ---- Tab4 趋势分析 ---- */
+function skinLineChart(){
+  const W=320,H=150,padL=22,padR=10,padT=12,padB=16;
+  const days=[]; for(let i=29;i>=0;i--) days.push(skinAddDays(keyDate,-i));
+  const byDay={}; skinGet().logs.forEach(l=>{ (byDay[l.date]=byDay[l.date]||[]).push(l.score); });
+  const vals=days.map(d=> byDay[d]? +(byDay[d].reduce((a,b)=>a+b,0)/byDay[d].length).toFixed(1):null );
+  const x=i=> padL+(W-padL-padR)*i/(days.length-1);
+  const y=v=> padT+(H-padT-padB)*(1-(v-1)/4);
+  let segs=[],cur=[];
+  vals.forEach((v,i)=>{ if(v==null){ if(cur.length>1) segs.push(cur); cur=[]; } else cur.push([x(i),y(v),days[i],v]); });
+  if(cur.length>1) segs.push(cur);
+  let paths='';
+  segs.forEach(s=>{ paths+='<path d="M'+s.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')+'" fill="none" stroke="#e8485c" stroke-width="2.4" stroke-linejoin="round"/>'; });
+  let dots='';
+  vals.forEach((v,i)=>{ if(v!=null){ dots+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(v).toFixed(1)+'" r="3" fill="#ff85a2"><title>'+days[i]+' '+v+'分</title></circle>'; } });
+  let yt=''; [1,2,3,4,5].forEach(v=>{ yt+='<line x1="'+padL+'" y1="'+y(v).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y(v).toFixed(1)+'" stroke="#f0e0e6" stroke-width="1"/><text x="2" y="'+(y(v)+3).toFixed(1)+'" font-size="9" fill="#b0a0a6">'+v+'</text>'; });
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+yt+paths+dots+'</svg>';
+}
+function skinProblemChart(){
+  const counts={}; SKIN_PROBS.forEach(p=>counts[p]=0);
+  skinGet().logs.forEach(l=>(l.problems||[]).forEach(p=>{ if(p in counts) counts[p]++; }));
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  if(!total) return '<p style="color:#b0a0a6;font-size:13px;text-align:center;padding:14px">暂无肌肤问题记录</p>';
+  const colors={'干燥':'#f6a5b8','出油':'#f4c95d','长痘':'#e8736f','泛红':'#f0a0c0','敏感':'#b89fe0','暗沉':'#c0b0a0','毛孔粗大':'#9fb8d0','细纹':'#d0a0a0','无问题':'#bcbcbc'};
+  let ang=-Math.PI/2, R=52,cx=70,cy=70,segs='';
+  SKIN_PROBS.forEach(p=>{ const n=counts[p]; if(!n) return; const a2=ang+2*Math.PI*n/total; const x1=cx+R*Math.cos(ang),y1=cy+R*Math.sin(ang),x2=cx+R*Math.cos(a2),y2=cy+R*Math.sin(a2); const large=(a2-ang)>Math.PI?1:0; segs+='<path d="M'+cx+' '+cy+' L'+x1.toFixed(1)+' '+y1.toFixed(1)+' A'+R+' '+R+' 0 '+large+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+' Z" fill="'+colors[p]+'"/>'; ang=a2; });
+  let legend=''; let maxP='',maxN=0; SKIN_PROBS.forEach(p=>{ if(counts[p]>0){ legend+='<span><i style="background:'+colors[p]+'"></i>'+p+' '+counts[p]+'次</span>'; if(counts[p]>maxN){maxN=counts[p];maxP=p;} } });
+  return '<div style="display:flex;align-items:center;gap:14px"><svg viewBox="0 0 140 140" style="width:130px;height:130px;flex:none">'+segs+'<circle cx="70" cy="70" r="30" fill="#fff"/></svg><div style="flex:1"><div class="skin-legend" style="flex-direction:column;gap:4px">'+legend+'</div></div></div><div style="margin-top:8px;font-size:13px;color:#6a5a60">最常见问题：'+maxP+'（出现 '+maxN+' 次）</div>';
+}
+function skinHeatmap(){
+  const ck=skinGet().checkins;
+  let cells='';
+  for(let i=29;i>=0;i--){ const d=skinAddDays(keyDate,-i); const on=!!ck[d]; cells+='<div title="'+d+(on?(' 已打卡 '+ck[d]):' 未打卡')+'" style="width:13px;height:13px;border-radius:3px;background:'+(on?'#ff85a2':'#f3e8ec')+'"></div>'; }
+  const thisMonth=Object.keys(ck).filter(d=>d.slice(0,7)===keyDate.slice(0,7)).length;
+  const streak=skinStreak();
+  return '<div style="display:flex;flex-wrap:wrap;gap:3px">'+cells+'</div><div style="margin-top:10px;font-size:13px;color:#6a5a60">本月打卡 <b style="color:var(--kitty-red)">'+thisMonth+'</b> 天 · 连续打卡 <b style="color:var(--kitty-red)">'+streak+'</b> 天</div>';
+}
+function skinSummary(){
+  const logs=skinGet().logs.filter(l=>skinDaysBetween(l.date,keyDate)<=30);
+  if(!logs.length) return '还没有足够数据生成小结';
+  const avg=logs.reduce((a,b)=>a+b.score,0)/logs.length;
+  const counts={}; SKIN_PROBS.forEach(p=>counts[p]=0);
+  logs.forEach(l=>(l.problems||[]).forEach(p=>{ if(p in counts) counts[p]++; }));
+  let maxP='',maxN=0; SKIN_PROBS.forEach(p=>{ if(counts[p]>maxN){maxN=counts[p];maxP=p;} });
+  const periodLow=logs.filter(l=>l.period && l.score<3).length;
+  return '本月皮肤平均分 '+avg.toFixed(1)+'，'+(maxP!=='无问题'&&maxN>0?('主要问题为'+maxP):'整体状态不错')+(periodLow?('，生理期前后评分偏低'):'')+'。';
+}
+function skinAISuggestion(){
+  const skin=skinGet(); const logs=skin.logs;
+  const seed=(skin.aiSeed||0);
+  if(!logs.length) return '先记录几天皮肤状态，我才能给你更准的建议～';
+  const recent=logs.filter(l=>skinDaysBetween(l.date,keyDate)<=14);
+  const arr=recent.length?recent:logs;
+  const counts={}; SKIN_PROBS.forEach(p=>counts[p]=0);
+  arr.forEach(l=>(l.problems||[]).forEach(p=>{ if(p in counts) counts[p]++; }));
+  let maxP='',maxN=0; SKIN_PROBS.forEach(p=>{ if(counts[p]>maxN){maxN=counts[p];maxP=p;} });
+  const avg=arr.reduce((a,b)=>a+b.score,0)/arr.length;
+  const periodLogs=arr.filter(l=>l.period);
+  let parts=['近两周皮肤平均分 '+avg.toFixed(1)+' 分'];
+  if(maxP && maxP!=='无问题') parts.push('最主要问题是'+maxP+'（出现 '+maxN+' 次），可针对性护理');
+  if(periodLogs.length){ const pavg=periodLogs.reduce((a,b)=>a+b.score,0)/periodLogs.length; const other=arr.filter(l=>!l.period); const oavg=other.length?other.reduce((a,b)=>a+b.score,0)/other.length:avg; if(pavg<oavg-0.2) parts.push('生理期前后评分明显偏低，那几天建议温和护肤、加强修护'); }
+  const soon=skin.products.filter(p=>{ const ex=skinExpireDays(p); return ex!==null && ex>=0 && ex<=15; });
+  if(soon.length) parts.push('「'+soon.map(p=>p.name).join('、')+'」即将过期，建议尽快用完');
+  const adv=['保持规律作息，早睡对皮肤改善最大～','多补水、做好防晒，是最划算的护肤习惯','换季注意保湿，可减少泛红和干燥','长痘期少用手摸脸，做好清洁和控油'];
+  return parts.join('；')+'。'+(adv[seed%adv.length]);
+}
+function skinRerollAI(){ const skin=skinGet(); skin.aiSeed=(skin.aiSeed||0)+1; skinSet(skin); const box=document.querySelector('.skin-ai .b'); if(box) box.textContent=skinAISuggestion(); }
+function skinTrendHTML(){
+  const skin=skinGet(); const logs=skin.logs;
+  const head=`<div class="skin-section"><div class="skin-cat-title" style="margin:0 0 8px">📈 近 30 天皮肤评分趋势</div><div class="skin-chart">${skinLineChart()}</div><div style="margin-top:8px;font-size:13px;color:#6a5a60">${skinSummary()}</div></div>
+  <div class="skin-section"><div class="skin-cat-title" style="margin:0 0 8px">🌸 问题分布</div>${skinProblemChart()}</div>
+  <div class="skin-section"><div class="skin-cat-title" style="margin:0 0 8px">🔥 打卡日历</div>${skinHeatmap()}</div>
+  <div class="skin-section"><div class="skin-ai"><div class="h">🤖 AI 护肤建议<button onclick="skinRerollAI()">换一条建议</button></div><div class="b">${skinAISuggestion()}</div></div></div>`;
+  if(logs.length<7) return '<div class="skin-empty"><div class="e">📊</div><div class="t">记录 7 天后生成完整肌肤趋势分析<br><span style="font-size:12px">（当前已记录 '+logs.length+' 天，先看基础图表）</span></div></div>'+head;
+  return head;
+}
+
+/* ---- 设置 ---- */
+function openSkinSettings(){
+  const r=skinGet().reminders||{};
+  const html=`<h3>⚙️ 护肤设置</h3>
+    <div class="sheet-row"><label>晚间护肤提醒</label><div style="display:flex;gap:8px;align-items:center"><input type="time" id="set_night" value="${r.nightTime||'22:00'}" style="flex:1"><label style="display:flex;gap:4px;align-items:center;font-size:13px"><input type="checkbox" id="set_night_on" ${r.nightOn?'checked':''}> 开启</label></div></div>
+    <div class="sheet-row"><label>面膜提醒（每周次数，0=关闭）</label><input type="number" id="set_mask" min="0" max="7" value="${r.maskPeriod||0}"></div>
+    <div class="sheet-row"><label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" id="set_expire" ${r.expireOn!==false?'checked':''}> 产品到期前提醒</label></div>
+    <button class="btn btn-pink" style="width:100%;margin:6px 0" onclick="skinSaveSettings()">保存设置</button>
+    <button style="width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;cursor:pointer;margin-bottom:8px;font-family:inherit" onclick="skinExport()">📤 导出数据</button>
+    <button style="width:100%;border:1px solid var(--kitty-red);color:var(--kitty-red);background:#fff;border-radius:12px;padding:11px;cursor:pointer;font-family:inherit" onclick="skinClearAll()">🗑 清空所有数据</button>`;
+  openSheet(html);
+}
+function skinSaveSettings(){ const skin=skinGet(); skin.reminders={ nightOn:document.getElementById('set_night_on').checked, nightTime:document.getElementById('set_night').value, maskPeriod:+document.getElementById('set_mask').value||0, expireOn:document.getElementById('set_expire').checked }; skinSet(skin); closeSheet(); alert('设置已保存'); }
+function skinExport(){ const data=JSON.stringify(skinGet(),null,2); const blob=new Blob([data],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='护肤日记_'+keyDate+'.json'; a.click(); }
+function skinClearAll(){ if(!confirm('确定清空护肤日记所有数据？此操作不可恢复')) return; DB.set('skin', JSON.parse(JSON.stringify(DEF.skin))); closeSheet(); setRoute('skin'); }
+
+/* ---- 联动：护肤 → 良品宜物 ---- */
+function syncSkinToGoods(p){
+  let items=goodsLog();
+  items=items.filter(x=>!(x.fromSkin && x.skinId===p.id));
+  if(p.rb==='red'||p.rb==='black'){
+    items.push({ id:Date.now()+Math.floor(Math.random()*9000), name:p.name, cat:(p.cats&&p.cats[0])||'护肤', price:0, star:(p.rb==='red'?5:2), type:(p.rb==='red'?'红榜':'黑榜'), pros:(p.brand||''), cons:'', repurchase:(p.rb==='red'), created:keyDate, fromSkin:true, skinId:p.id, pics:p.pics||[] });
+  }
+  setGoodsLog(items);
+}
+function removeFromGoods(skinId){ let items=goodsLog(); items=items.filter(x=>!(x.fromSkin && x.skinId===skinId)); setGoodsLog(items); }
+function checkSkinReminders(){
+  const r=(skinGet().reminders)||{};
+  if(r.nightOn && r.nightTime){
+    const nowH=String(new Date().getHours()).padStart(2,'0'), nowM=String(new Date().getMinutes()).padStart(2,'0');
+    if((nowH+':'+nowM)>=r.nightTime && !skinGet().checkins[keyDate]){
+      if(!sessionStorage.getItem('skinNight'+keyDate)){
+        sessionStorage.setItem('skinNight'+keyDate,'1');
+        if(window.Notification && Notification.permission==='granted'){ try{ new Notification('该护肤啦 🧴',{body:'今日还没打卡哦'}); }catch(e){ alert('该护肤啦 🧴（今日还没打卡）'); } }
+        else { alert('该护肤啦 🧴（今日还没打卡）'); }
+      }
+    }
+  }
+}
+
+
+/* ---- 良品宜物联动入口（护肤侧提供）---- */
+function openGoodsImportFromSkin(){
+  const skin=skinGet();
+  const cand=skin.products.filter(p=>!p.rb);
+  if(!cand.length){ alert('护肤品库里没有「未标记红黑榜」的产品可导入'); return; }
+  const html=`<h3>从护肤品库导入</h3><div id="gimp_list">${cand.map(p=>`<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)">
+    <div style="flex:1"><b>${esc(p.name)}</b><div style="font-size:12px;color:#9a8a90">${(p.cats||[]).join('/')}</div></div>
+    <button onclick="gimpPick('${p.id}','red')" style="border:1px solid var(--kitty-pink);background:#ffe1ea;color:var(--kitty-red);border-radius:10px;padding:5px 8px;cursor:pointer;font-family:inherit">标红榜</button>
+    <button onclick="gimpPick('${p.id}','black')" style="border:1px solid #888;background:#5a5a5a;color:#fff;border-radius:10px;padding:5px 8px;cursor:pointer;font-family:inherit">标黑榜</button>
+  </div>`).join('')}</div>`;
+  openSheet(html);
+}
+function gimpPick(id, rb){
+  const skin=skinGet(); const p=skin.products.find(x=>x.id===id); if(!p) return;
+  p.rb=rb; skinSet(skin); syncSkinToGoods(p); closeSheet(); setRoute('goods');
+}
 
 /* ===== 灵光一现 ===== */
 let sparkFilter='全部';
@@ -4264,5 +4873,9 @@ if (typeof window !== 'undefined') {
   window.initTravelGlobe = initTravelGlobe;
 }
 </script>
+
+<div id="sheetMask" class="sheet-mask" onclick="if(event.target===this)closeSheet()"></div>
+<div id="sheet" class="sheet"></div>
+<div id="imgprevMask" class="imgprev-mask"><span class="close-x">×</span><span class="del-x">🗑</span><span class="nav l">‹</span><span class="nav r">›</span><div class="pg">1/1</div><img src="" alt=""></div>
 </body>
 </html>

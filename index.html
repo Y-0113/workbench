@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260823c';
+  var WB_VER='20260823d';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1029,15 +1029,30 @@
 .sheet-imgs .si .x{ position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--kitty-red); color:#fff; font-size:12px; line-height:18px; text-align:center; cursor:pointer; }
 .sheet-imgs .add{ width:56px; height:56px; border-radius:10px; border:1px dashed var(--line); background:#fff; color:#bba; font-size:24px; cursor:pointer; }
 /* 图片预览 */
-.imgprev-mask{ position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; display:flex; align-items:center; justify-content:center; touch-action:none; opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s ease; }
+.imgprev-mask{ position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:10000; display:flex; flex-direction:column; touch-action:none; opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s ease; }
 .imgprev-mask.show{ opacity:1; visibility:visible; }
-.imgprev-mask img{ max-width:92vw; max-height:82vh; border-radius:10px; object-fit:contain; will-change:transform; }
-.imgprev-mask .pg{ position:absolute; top:16px; left:50%; transform:translateX(-50%); color:#fff; font-size:14px; background:rgba(0,0,0,.45); padding:4px 14px; border-radius:14px; }
-.imgprev-mask .close-x{ position:absolute; top:14px; left:14px; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.2); color:#fff; font-size:24px; line-height:34px; text-align:center; cursor:pointer; z-index:5; }
-.imgprev-mask .del-x{ position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.2); color:#fff; font-size:19px; line-height:34px; text-align:center; cursor:pointer; z-index:5; display:none; }
-.imgprev-mask .nav{ position:absolute; top:50%; transform:translateY(-50%); color:#fff; font-size:34px; cursor:pointer; padding:12px 16px; user-select:none; z-index:5; }
-.imgprev-mask .nav.l{ left:2px; } .imgprev-mask .nav.r{ right:2px; }
-.imgprev-mask .ld{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:14px; background:rgba(0,0,0,.45); padding:8px 18px; border-radius:20px; display:none; z-index:4; }
+.ip-header{ position:absolute; top:0; left:0; right:0; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; z-index:12; background:linear-gradient(to bottom,rgba(0,0,0,.55),transparent); pointer-events:none; }
+.ip-header .pg{ color:#fff; font-size:13px; background:rgba(0,0,0,.45); padding:5px 14px; border-radius:14px; pointer-events:auto; }
+.ip-header .btn{ width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.18); color:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; pointer-events:auto; transition:background .15s; }
+.ip-header .btn:hover{ background:rgba(255,255,255,.32); }
+.ip-header .close-x{ font-size:24px; line-height:1; }
+.ip-header .del-x{ font-size:18px; }
+.ip-header .download-x{ font-size:18px; }
+.ip-stage{ flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+.imgprev-mask img{ max-width:96vw; max-height:78vh; border-radius:8px; object-fit:contain; will-change:transform; user-select:none; -webkit-user-drag:none; cursor:grab; }
+.imgprev-mask img.grabbing{ cursor:grabbing; }
+.imgprev-mask .nav{ position:absolute; top:50%; transform:translateY(-50%); color:#fff; font-size:32px; width:42px; height:72px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.12); border-radius:8px; cursor:pointer; user-select:none; z-index:10; transition:background .15s; }
+.imgprev-mask .nav:hover{ background:rgba(255,255,255,.25); }
+.imgprev-mask .nav.l{ left:8px; }
+.imgprev-mask .nav.r{ right:8px; }
+.imgprev-mask .ld{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:14px; background:rgba(0,0,0,.5); padding:8px 20px; border-radius:20px; display:none; z-index:8; }
+.ip-thumbs{ height:72px; flex:none; display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; background:rgba(0,0,0,.45); overflow-x:auto; -webkit-overflow-scrolling:touch; transform:translateY(100%); transition:transform .25s ease; }
+.imgprev-mask.show .ip-thumbs{ transform:translateY(0); }
+.ip-thumbs:empty{ display:none; }
+.ip-thumb{ flex:none; width:56px; height:56px; border-radius:8px; object-fit:cover; border:2px solid transparent; opacity:.65; cursor:pointer; transition:all .15s; }
+.ip-thumb.active{ border-color:var(--kitty-red); opacity:1; transform:scale(1.05); }
+.ip-hint{ position:absolute; bottom:84px; left:50%; transform:translateX(-50%); color:#fff; font-size:12px; background:rgba(0,0,0,.45); padding:4px 12px; border-radius:12px; opacity:0; transition:opacity .3s; pointer-events:none; z-index:9; }
+.ip-hint.show{ opacity:1; }
 
 </style>
 <script src="https://beacon.cdn.qq.com/sdk/4.5.9/beacon_web.min.js"></script><script>
@@ -2593,37 +2608,62 @@ function skinGet(){ return DB.get('skin',DEF.skin); }
 function skinSet(v){ DB.set('skin',v); }
 function skinNewId(){ return 'sk'+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36); }
 
-/* ---- 全局图片预览（轻量，支持左右切换/双击缩放/页码/删除）---- */
-let _ip={urls:[],i:0,scale:1,editable:false,onDel:null,startX:0,moved:false};
-function applyImgT(){ const m=document.getElementById('imgprevMask'); if(!m) return; const img=m.querySelector('img'); img.style.transform='translate('+(_ip.tx||0)+'px,'+(_ip.ty||0)+'px) scale('+(_ip.scale||1)+')'; }
+/* ---- 全局图片预览 ImagePreview（全功能：缩放/拖拽/手势/键盘/缩略图/下载/删除）---- */
+let _ip={urls:[],i:0,scale:1,tx:0,ty:0,editable:false,onDel:null,startX:0,startY:0,moved:false,pd:0,ps:1,sTx:0,sTy:0,lastX:0,lastT:0,vel:0,trackX:0,imgW:0,imgH:0};
+function _ipEl(sel){ const m=document.getElementById('imgprevMask'); return m?m.querySelector(sel):null; }
+function _ipShowHint(t){ const h=_ipEl('.ip-hint'); if(!h) return; h.textContent=t; h.classList.add('show'); setTimeout(()=>h.classList.remove('show'),1400); }
+function _ipLimitPan(){
+  const img=_ipEl('img'); if(!img) return;
+  const rect=img.getBoundingClientRect(); const mw=window.innerWidth, mh=window.innerHeight;
+  const maxX=Math.max(0,(rect.width-mw)/2), maxY=Math.max(0,(rect.height-mh)/2);
+  _ip.tx=Math.max(-maxX,Math.min(maxX,_ip.tx)); _ip.ty=Math.max(-maxY,Math.min(maxY,_ip.ty));
+}
+function _ipApplyTransform(){
+  const img=_ipEl('img'); if(!img) return;
+  img.style.transform='translate('+(_ip.tx||0)+'px,'+(_ip.ty||0)+'px) scale('+(_ip.scale||1)+')';
+}
+function _ipThumbRender(){
+  const box=_ipEl('.ip-thumbs'); if(!box) return;
+  if(_ip.urls.length<=1){ box.innerHTML=''; return; }
+  box.innerHTML=_ip.urls.map((u,i)=>`<img class="ip-thumb ${i===_ip.i?'active':''}" src="${u}" onclick="skinIpGo(${i})">`).join('');
+  const active=box.querySelector('.ip-thumb.active'); if(active) active.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}
 function openImagePreview(urls,idx,editable,onDel){
   if(!urls||!urls.length) return;
   const m=document.getElementById('imgprevMask'); if(!m) return;
-  _ip={urls:urls.slice(),i:idx||0,scale:1,tx:0,ty:0,editable:!!editable,onDel:onDel||null,startX:0,startY:0,moved:false,pd:0,ps:1,sTx:0,sTy:0,lastX:0,lastT:0,vel:0,trackX:0};
-  m.classList.add('show');
-  document.body.style.overflow='hidden';
-  skinIpRender();
+  _ip={urls:urls.filter(u=>u).slice(),i:Math.min(Math.max(0,idx||0),urls.length-1),scale:1,tx:0,ty:0,editable:!!editable,onDel:onDel||null,startX:0,startY:0,moved:false,pd:0,ps:1,sTx:0,sTy:0,lastX:0,lastT:0,vel:0,trackX:0,imgW:0,imgH:0};
+  m.classList.add('show'); document.body.style.overflow='hidden';
+  skinIpBindOnce(); skinIpRender();
 }
 function skinIpRender(){
   const m=document.getElementById('imgprevMask'); if(!m) return;
   const img=m.querySelector('img');
-  _ip.scale=1; _ip.tx=0; _ip.ty=0;
-  img.style.transition='transform .2s ease';
-  img.style.transform='translate(0px,0px) scale(1)';
+  _ip.scale=1; _ip.tx=0; _ip.ty=0; _ipApplyTransform();
+  img.style.transition='opacity .2s ease'; img.style.opacity='1';
   m.querySelector('.pg').textContent='['+(_ip.i+1)+'/'+_ip.urls.length+']';
-  m.querySelector('.del-x').style.display=_ip.editable?'block':'none';
+  m.querySelector('.del-x').style.display=_ip.editable?'inline-flex':'none';
   const ld=m.querySelector('.ld'); if(ld) ld.style.display='flex';
-  img.onload=()=>{ if(ld) ld.style.display='none'; };
+  img.onload=()=>{ if(ld) ld.style.display='none'; _ip.imgW=img.naturalWidth||0; _ip.imgH=img.naturalHeight||0; };
+  img.onerror=()=>{ if(ld) ld.style.display='none'; _ipShowHint('图片加载失败'); };
   img.src=_ip.urls[_ip.i];
-  if(img.complete && img.naturalWidth){ if(ld) ld.style.display='none'; }
+  if(img.complete && img.naturalWidth){ if(ld) ld.style.display='none'; _ip.imgW=img.naturalWidth; _ip.imgH=img.naturalHeight; }
+  _ipThumbRender();
 }
+function skinIpGo(i){ if(i<0||i>=_ip.urls.length||i===_ip.i) return; _ip.i=i; skinIpRender(); }
 function skinIpClose(){ const m=document.getElementById('imgprevMask'); if(!m) return; m.classList.remove('show'); document.body.style.overflow=''; }
 function skinIpNav(dir){
-  const m=document.getElementById('imgprevMask'); const img=m.querySelector('img');
-  img.style.transition='opacity .18s ease'; img.style.opacity='0';
-  setTimeout(()=>{ _ip.i=(_ip.i+dir+_ip.urls.length)%_ip.urls.length; skinIpRender(); img.style.opacity='1'; },160);
+  const img=_ipEl('img'); if(!img) return;
+  img.style.transition='opacity .15s ease'; img.style.opacity='0';
+  setTimeout(()=>{ _ip.i=(_ip.i+dir+_ip.urls.length)%_ip.urls.length; skinIpRender(); },150);
 }
-function skinIpZoom(){ const m=document.getElementById('imgprevMask'); const img=m.querySelector('img'); _ip.scale=_ip.scale>1?1:2; _ip.tx=0; _ip.ty=0; img.style.transition='transform .2s ease'; img.style.transform='translate(0px,0px) scale('+_ip.scale+')'; }
+function skinIpZoom(s){
+  const img=_ipEl('img'); if(!img) return;
+  const next=s!=null?s:(_ip.scale>1?1:2.2);
+  _ip.scale=Math.min(4,Math.max(1,next));
+  if(_ip.scale<=1){ _ip.tx=0; _ip.ty=0; }
+  else { _ipLimitPan(); }
+  img.style.transition='transform .2s ease'; _ipApplyTransform();
+}
 function skinIpDel(){
   if(!_ip.editable||!_ip.onDel) return;
   const removed=_ip.urls[_ip.i]; _ip.urls.splice(_ip.i,1);
@@ -2631,41 +2671,63 @@ function skinIpDel(){
   if(!_ip.urls.length){ skinIpClose(); return; }
   _ip.i=Math.min(_ip.i,_ip.urls.length-1); skinIpRender();
 }
-function skinIpBind(){
+function skinIpDownload(){
+  const url=_ip.urls[_ip.i]; if(!url) return;
+  const a=document.createElement('a'); a.href=url; a.download='image_'+(_ip.i+1);
+  if(url.startsWith('data:')){ a.target='_blank'; }
+  document.body.appendChild(a); a.click(); a.remove();
+  _ipShowHint('已开始下载');
+}
+function skinIpBindOnce(){
   const m=document.getElementById('imgprevMask'); if(!m||m.dataset.bound) return; m.dataset.bound='1';
+  const img=m.querySelector('img');
   m.querySelector('.close-x').onclick=skinIpClose;
-  m.querySelector('.del-x').onclick=skinIpDel;
+  m.querySelector('.del-x').onclick=(e)=>{ e.stopPropagation(); skinIpDel(); };
+  m.querySelector('.download-x').onclick=(e)=>{ e.stopPropagation(); skinIpDownload(); };
   m.querySelector('.nav.l').onclick=()=>skinIpNav(-1);
   m.querySelector('.nav.r').onclick=()=>skinIpNav(1);
-  m.querySelector('img').onclick=(e)=>{ e.stopPropagation(); };
-  m.querySelector('img').ondblclick=(e)=>{ e.stopPropagation(); skinIpZoom(); };
-  m.addEventListener('wheel',e=>{ e.preventDefault(); const img=m.querySelector('img'); _ip.scale=Math.min(3,Math.max(1,_ip.scale*(e.deltaY<0?1.2:0.83))); _ip.tx=0; _ip.ty=0; applyImgT(); },{passive:false});
-  m.onclick=(e)=>{ if(e.target===m||(e.target.classList&&e.target.classList.contains('ld'))) skinIpClose(); };
-  let sx=0,sy=0,pd=0,ps=1,sTx=0,sTy=0;
-  m.addEventListener('touchstart',e=>{
-    const img=m.querySelector('img');
-    if(e.touches.length>=2){ pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); ps=_ip.scale; sTx=_ip.tx; sTy=_ip.ty; _ip.moved=true; }
-    else { sx=e.touches[0].clientX; sy=e.touches[0].clientY; sTx=_ip.tx; sTy=_ip.ty; _ip.moved=false; _ip.lastX=e.touches[0].clientX; _ip.lastT=Date.now(); _ip.vel=0; _ip.trackX=0; }
+  img.onclick=(e)=>{ e.stopPropagation(); };
+  img.ondblclick=(e)=>{ e.stopPropagation(); skinIpZoom(); };
+  m.addEventListener('wheel',e=>{ e.preventDefault(); skinIpZoom(_ip.scale*(e.deltaY<0?1.15:0.87)); },{passive:false});
+  m.onclick=(e)=>{ if(e.target===m||e.target.classList.contains('ip-stage')) skinIpClose(); };
+  document.addEventListener('keydown',e=>{
+    if(!m.classList.contains('show')) return;
+    if(e.key==='Escape'||e.key==='Esc') skinIpClose();
+    else if(e.key==='ArrowLeft') skinIpNav(-1);
+    else if(e.key==='ArrowRight') skinIpNav(1);
+    else if(e.key==='+'||e.key==='=') skinIpZoom(_ip.scale*1.25);
+    else if(e.key==='-'||e.key==='_') skinIpZoom(_ip.scale*0.8);
+  });
+  let sx=0,sy=0,pd=0,ps=1,sTx=0,sTy=0,isPinch=false;
+  img.addEventListener('touchstart',e=>{
+    if(e.touches.length>=2){ isPinch=true; pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); ps=_ip.scale; sTx=_ip.tx; sTy=_ip.ty; }
+    else { isPinch=false; sx=e.touches[0].clientX; sy=e.touches[0].clientY; sTx=_ip.tx; sTy=_ip.ty; _ip.moved=false; _ip.lastX=e.touches[0].clientX; _ip.lastT=Date.now(); _ip.vel=0; _ip.trackX=0; img.classList.add('grabbing'); }
   },{passive:true});
-  m.addEventListener('touchmove',e=>{
-    const img=m.querySelector('img');
-    if(e.touches.length>=2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); if(pd>0){ _ip.scale=Math.min(3,Math.max(1, ps*d/pd)); _ip.tx=sTx; _ip.ty=sTy; applyImgT(); } _ip.moved=true; }
-    else if(e.touches.length===1){
+  img.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length>=2){
+      isPinch=true; const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      if(pd>0){ _ip.scale=Math.min(4,Math.max(1, ps*d/pd)); _ip.tx=sTx; _ip.ty=sTy; _ipApplyTransform(); }
+    } else if(e.touches.length===1 && !isPinch){
       const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
-      if(_ip.scale>1){ _ip.tx=sTx+dx; _ip.ty=sTy+dy; applyImgT(); }
-      else { const now=Date.now(); if(now-_ip.lastT>0){ _ip.vel=(e.touches[0].clientX-_ip.lastX)/(now-_ip.lastT); } _ip.lastX=e.touches[0].clientX; _ip.lastT=now; _ip.trackX=dx; if(Math.abs(dx)>8) _ip.moved=true; }
+      if(_ip.scale>1){ _ip.tx=sTx+dx; _ip.ty=sTy+dy; _ipApplyTransform(); }
+      else { const now=Date.now(); if(now-_ip.lastT>0){ _ip.vel=(e.touches[0].clientX-_ip.lastX)/(now-_ip.lastT); } _ip.lastX=e.touches[0].clientX; _ip.lastT=now; _ip.trackX=dx; if(Math.abs(dx)>6) _ip.moved=true; }
     }
-  },{passive:true});
-  m.addEventListener('touchend',e=>{
-    if(_ip.scale>1){ return; }
-    if(_ip.moved && e.touches.length===0 && pd<=0){
+  },{passive:false});
+  img.addEventListener('touchend',e=>{
+    img.classList.remove('grabbing');
+    if(e.touches.length===0 && !isPinch && _ip.scale<=1 && _ip.moved){
       const dx=e.changedTouches[0].clientX-sx;
-      if(Math.abs(dx)>40 || Math.abs(_ip.vel)>0.25) skinIpNav(dx<0?1:-1);
+      if(Math.abs(dx)>50 || Math.abs(_ip.vel)>0.3){ skinIpNav(dx<0?1:-1); }
     }
-    pd=0;
+    if(e.touches.length===0){ isPinch=false; pd=0; _ipLimitPan(); _ipApplyTransform(); }
   },{passive:true});
+  img.addEventListener('touchcancel',()=>{ img.classList.remove('grabbing'); isPinch=false; pd=0; });
+  let drag=false,mx=0,my=0;
+  img.addEventListener('mousedown',e=>{ if(_ip.scale<=1) return; drag=true; mx=e.clientX; my=e.clientY; img.classList.add('grabbing'); });
+  window.addEventListener('mousemove',e=>{ if(!drag) return; _ip.tx+=e.clientX-mx; _ip.ty+=e.clientY-my; mx=e.clientX; my=e.clientY; _ipApplyTransform(); });
+  window.addEventListener('mouseup',()=>{ drag=false; img.classList.remove('grabbing'); _ipLimitPan(); _ipApplyTransform(); });
 }
-
 /* ---- 底部弹层 ---- */
 function openSheet(html){
   const m=document.getElementById('sheetMask'), s=document.getElementById('sheet');
@@ -3439,7 +3501,7 @@ function wardRecRender(){
   const w=wardData(); const get=id=>w.items.find(x=>x.id===id);
   const top=get(wdCurRec.top), bottom=get(wdCurRec.bottom), shoes=get(wdCurRec.shoes);
   if(!top&&!bottom&&!shoes) return '<div class="u-empty"><div class="e">👗</div><div class="t">先添加几件衣物，我来帮你搭配</div></div>';
-  const cell=it=>it?`<div class="wd-rec-cell" onclick="openImagePreview([this.querySelector('img').src],0)">${it.img?`<img src="${it.img}">`:'<div class="wd-rec-ph">'+catIcon(it.cat)+'</div>'}<div class="wd-rec-n">${esc(it.name)}</div></div>`:'<div class="wd-rec-cell"><div class="wd-rec-ph">＋</div></div>';
+  const cell=it=>it?`<div class="wd-rec-cell" onclick="openImagePreview(${it.img?JSON.stringify([it.img]).replace(/"/g,'&quot;'):'[]'},0)">${it.img?`<img src="${it.img}">`:'<div class="wd-rec-ph">'+catIcon(it.cat)+'</div>'}<div class="wd-rec-n">${esc(it.name)}</div></div>`:'<div class="wd-rec-cell"><div class="wd-rec-ph">＋</div></div>';
   const reason='今天 '+wdCurRec.t+'°C，推荐 '+(top?esc(top.name):'上装')+' + '+(bottom?esc(bottom.name):'下装')+(wdCurRec.t<15?'，注意保暖层次，叠穿更暖':(wdCurRec.t>=28?'，轻薄透气为主，备件薄外套':(wdCurRec.t>=24?'，舒适百搭，空调房可备薄外套':'，长袖刚好，体感舒适')))+'。';
   return `<div class="u-card wd-rec">
     <div class="wd-rec-h">🌤️ 今日穿搭推荐</div>
@@ -5097,6 +5159,6 @@ initLock();
 
 <div id="sheetMask" class="sheet-mask" onclick="if(event.target===this)closeSheet()"></div>
 <div id="sheet" class="sheet"></div>
-<div id="imgprevMask" class="imgprev-mask"><span class="close-x">×</span><span class="del-x">🗑</span><span class="nav l">‹</span><span class="nav r">›</span><div class="pg">[1/1]</div><div class="ld">加载中…</div><img src="" alt=""></div>
+<div id="imgprevMask" class="imgprev-mask"><div class="ip-header"><span class="btn close-x" title="关闭">×</span><div class="pg">[1/1]</div><div><span class="btn download-x" title="保存图片">⬇️</span><span class="btn del-x" title="删除">🗑</span></div></div><span class="nav l" title="上一张">‹</span><span class="nav r" title="下一张">›</span><div class="ip-stage"><div class="ld">加载中…</div><img src="" alt=""></div><div class="ip-thumbs"></div><div class="ip-hint"></div></div>
 </body>
 </html>

@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20250822d';
+  var WB_VER='20250822e';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -931,6 +931,16 @@
 .skin-prod{ display:flex; gap:12px; align-items:center; background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin-bottom:10px; position:relative; }
 .skin-prod-thumb{ width:62px; height:62px; border-radius:12px; object-fit:cover; flex:none; background:#faf0f4; cursor:pointer; }
 .skin-prod-thumb.ph{ display:flex; align-items:center; justify-content:center; font-size:30px; }
+.g-up{ border:2px dashed var(--kitty-pink); border-radius:16px; background:#fff7fa; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18px; cursor:pointer; color:var(--kitty-pink); gap:6px; transition:transform .12s; }
+.g-up:active{ transform:scale(.98); }
+.g-up-ic{ font-size:30px; line-height:1; }
+.g-up-tx{ font-size:13px; }
+.g-up-list{ display:flex; gap:8px; margin-top:10px; overflow-x:auto; padding-bottom:4px; }
+.g-up-list .si{ position:relative; width:64px; height:64px; border-radius:12px; object-fit:cover; flex:none; border:1px solid var(--line); }
+.g-up-list .si .x{ position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--kitty-red); color:#fff; font-size:12px; line-height:18px; text-align:center; cursor:pointer; }
+.g-up-list .si.add{ border:1px dashed var(--line); display:flex; align-items:center; justify-content:center; color:#bba; font-size:24px; }
+.g-thumb{ width:62px; height:62px; border-radius:12px; object-fit:cover; flex:none; background:#faf0f4; cursor:pointer; }
+.g-thumb.ph{ display:flex; align-items:center; justify-content:center; font-size:28px; color:#d9b8c6; }
 .skin-prod-info{ flex:1; min-width:0; }
 .skin-prod-name{ font-weight:700; font-size:15px; }
 .skin-prod-brand{ font-size:12px; color:#9a8a90; margin-top:2px; }
@@ -2396,6 +2406,14 @@ function viewGoods(){
   <button class="btn btn-pink" style="width:100%;margin-bottom:12px" onclick="openGoodsImportFromSkin()">🧴 从护肤品库导入</button><div class="page-desc">买过的东西，红榜收藏 / 黑榜避坑</div>
     <div class="sec-title">添加一件</div>
     <div class="add" style="flex-wrap:wrap">
+      <div style="flex:1 1 100%">
+        <div class="g-up" id="gUp" onclick="document.getElementById('g_file').click()">
+          <div class="g-up-ic">📷</div>
+          <div class="g-up-tx">添加产品图</div>
+        </div>
+        <input id="g_file" type="file" accept="image/*" multiple style="display:none" onchange="goodsPickImgs(this)">
+        <div class="g-up-list" id="gUpList"></div>
+      </div>
       <input id="g_name" placeholder="物品名" style="flex:1 1 100%" onkeydown="if(event.key==='Enter')addGoods()">
       <select id="g_type"><option>红榜</option><option>黑榜</option></select>
       <input id="g_cat" placeholder="分类" style="width:78px" onkeydown="if(event.key==='Enter')addGoods()">
@@ -2413,12 +2431,16 @@ function viewGoods(){
     <div id="goodsBlack">${goodsRows(items.filter(x=>x.type==='黑榜'))}</div>
     </div>`;
 }
-function goodsRows(list){ return list.length?list.map(x=>`<div class="grow">
+function goodsRows(list){ return list.length?list.map(x=>{
+  const thumb=x.pics&&x.pics.length?`<img class="g-thumb" src="${x.pics[0]}" onclick="openImagePreview(${JSON.stringify(x.pics).replace(/\"/g,'&quot;')},0);event.stopPropagation()">`:`<div class="g-thumb ph">📦</div>`;
+  return `<div class="grow" style="display:flex;gap:10px;align-items:flex-start">
+  <div style="flex:none">${thumb}</div>
+  <div style="flex:1;min-width:0">
   <div class="g-top">${x.fromSkin?'<span title="来自护肤日记" style="cursor:pointer" onclick="setRoute(\'skin\');event.stopPropagation()">🧴</span> ':''}<b>${esc(x.name)}</b><span class="tag">${esc(x.cat||'')}</span><span class="stars">${'★'.repeat(x.star)}${'☆'.repeat(5-x.star)}</span>${x.repurchase?'<span class="tag" style="background:#e0f7d6;color:#5a9e3a">会回购</span>':''}<button class="del" onclick="delGoods(${x.id})" style="background:none;border:none;color:#d4b2bc;font-size:18px;cursor:pointer">×</button></div>
   <div class="g-meta">¥${x.price||'?'} · ${x.type}</div>
   ${x.pros?`<div class="g-p">👍 ${esc(x.pros)}</div>`:''}${x.cons?`<div class="g-c">👎 ${esc(x.cons)}</div>`:''}
-</div>`).join(''):'<p style="color:var(--ink-soft)">还没有记录</p>'; }
-function addGoods(){ const name=document.getElementById('g_name').value.trim(); if(!name)return; const items=goodsLog(); items.push({id:Date.now(),name,cat:document.getElementById('g_cat').value.trim(),price:+document.getElementById('g_price').value||0,star:+document.getElementById('g_star').value,type:document.getElementById('g_type').value,pros:document.getElementById('g_pros').value.trim(),cons:document.getElementById('g_cons').value.trim(),repurchase:document.getElementById('g_rep').checked,created:keyDate}); setGoodsLog(items); setRoute('goods'); }
+</div></div>`).join(''):'<p style="color:var(--ink-soft)">还没有记录</p>'; }
+function addGoods(){ const name=document.getElementById('g_name').value.trim(); if(!name)return; const items=goodsLog(); items.push({id:Date.now(),name,cat:document.getElementById('g_cat').value.trim(),price:+document.getElementById('g_price').value||0,star:+document.getElementById('g_star').value,type:document.getElementById('g_type').value,pros:document.getElementById('g_pros').value.trim(),cons:document.getElementById('g_cons').value.trim(),repurchase:document.getElementById('g_rep').checked,pics:_goodsTmpPics.slice(),created:keyDate}); _goodsTmpPics=[]; setGoodsLog(items); setRoute('goods'); }
 function delGoods(id){
   let items=goodsLog(); const rec=items.find(x=>x.id===id);
   if(rec&&rec.fromSkin){
@@ -2428,6 +2450,11 @@ function delGoods(id){
   }
   items=items.filter(x=>x.id!==id); setGoodsLog(items); setRoute('goods');
 }
+
+let _goodsTmpPics=[];
+function goodsPickImgs(input){ const max=3; const files=input.files; if(!files||!files.length) return; for(let i=0;i<files.length && _goodsTmpPics.length<max; i++){ const r=new FileReader(); r.onload=()=>{ _goodsTmpPics.push(r.result); if(_goodsTmpPics.length<=max) goodsRenderTmpPics(); }; r.readAsDataURL(files[i]); } input.value=''; goodsRenderTmpPics(); }
+function goodsRenderTmpPics(){ const box=document.getElementById('gUpList'); if(!box) return; box.innerHTML=_goodsTmpPics.map((u,i)=>`<div class="si" style="background:url(${u}) center/cover"><div class="x" onclick="goodsDelTmpPic(${i})">×</div></div>`).join('')+(_goodsTmpPics.length<3?'<div class="si add" onclick="document.getElementById(\'g_file\').click()">＋</div>':''); }
+function goodsDelTmpPic(i){ _goodsTmpPics.splice(i,1); goodsRenderTmpPics(); }
 
 /* ===== 护肤日记模块 ===== */
 const SKIN_CATS=['卸妆','洁面','爽肤水','精华','眼霜','乳液','面霜','防晒','面膜','其他'];
@@ -2477,10 +2504,17 @@ function skinIpBind(){
   m.querySelector('img').onclick=skinIpZoom;
   m.querySelector('img').ondblclick=skinIpZoom;
   m.onclick=(e)=>{ if(e.target===m) skinIpClose(); };
-  let sx=0,sy=0;
-  m.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; _ip.moved=false; },{passive:true});
-  m.addEventListener('touchmove',e=>{ if(Math.abs(e.touches[0].clientX-sx)>40){ _ip.moved=true; } },{passive:true});
-  m.addEventListener('touchend',e=>{ if(_ip.moved){ const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>40) skinIpNav(dx<0?1:-1); } },{passive:true});
+  let sx=0,sy=0,pd=0,ps=1;
+  m.addEventListener('touchstart',e=>{
+    if(e.touches.length>=2){ pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); ps=_ip.scale; _ip.moved=true; }
+    else { sx=e.touches[0].clientX; sy=e.touches[0].clientY; _ip.moved=false; }
+  },{passive:true});
+  m.addEventListener('touchmove',e=>{
+    const img=m.querySelector('img');
+    if(e.touches.length>=2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); if(pd>0){ _ip.scale=Math.min(4,Math.max(0.5, ps*d/pd)); img.style.transform='scale('+_ip.scale+')'; } _ip.moved=true; }
+    else if(e.touches.length===1){ if(Math.abs(e.touches[0].clientX-sx)>40) _ip.moved=true; }
+  },{passive:true});
+  m.addEventListener('touchend',e=>{ if(_ip.moved && e.touches.length===0 && pd<=0){ const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>40) skinIpNav(dx<0?1:-1); } pd=0; },{passive:true});
 }
 
 /* ---- 底部弹层 ---- */

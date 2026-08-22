@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260823f';
+  var WB_VER='20260823g';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -438,6 +438,29 @@
   .cal-cell.has{background:#ffd6e0; font-weight:700}
   .cal-cell.sel{background:var(--kitty-red); color:#fff; box-shadow:0 4px 10px rgba(232,72,92,.3)}
   .cal-mark{position:absolute; top:2px; right:4px; font-size:9px}
+  /* 体感实录：智能摘要 / 折叠面板 / 移动端适配 */
+  .body-summary{background:linear-gradient(135deg,#fff,#fff6f9); border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:14px; font-size:13px; line-height:1.7; color:var(--ink)}
+  .body-summary .body-sum-line{margin:2px 0}
+  .body-summary .body-sum-line b{color:var(--kitty-red)}
+  .body-summary .body-sum-tip{color:var(--ink-soft)}
+  .body-summary .body-sum-per{color:#c2567a}
+  .body-summary .body-sum-empty{color:var(--ink-soft)}
+  .body-summary .body-sum-note{display:block; margin-top:2px; color:var(--ink-soft); font-size:12px}
+  .body-actions{display:flex; gap:10px; margin-bottom:14px}
+  .body-actions .btn{flex:1}
+  .body-cal-panel{margin-bottom:14px}
+  .body-rec-panel{margin-bottom:8px}
+  #bodyHist{max-height:260px; overflow:auto; -webkit-overflow-scrolling:touch}
+  @media(max-width:560px){
+    .stat-row{flex-direction:column}
+    .body-actions{flex-direction:column}
+    .body-actions .btn{width:100%}
+    .cal{padding:10px}
+    .cal-title{font-size:14px}
+    .cal-cell{font-size:11px; border-radius:9px}
+    .cal-mark{font-size:8px}
+    .ministat b{font-size:18px}
+  }
 
   /* 健身/菜谱/英语/雅思/新闻/存款 保留样式 */
   .fit-v{display:inline-block; margin-left:6px; background:#ffe0e6; color:#e0556e; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; text-decoration:none}
@@ -2544,35 +2567,45 @@ function viewBody(){
   const recDays=mLog.length, perDays=mLog.filter(x=>x.period).length;
   const t=log.find(x=>x.date===bodySel);
   const selStates=t?t.states:[]; const selPer=t?t.period:false; const selNote=t?t.note:'';
+  const calOpen=!!window._bodyCalOpen, recOpen=!!window._bodyRecOpen;
   return `<div class="page-title">🌡️ 体感实录</div><div class="page-desc">点日历上的日子，记录 / 回看身体状态</div>
     <div class="stat-row"><div class="ministat"><b>${recDays}</b>本月记录</div><div class="ministat"><b>${perDays}</b>本月生理期</div></div>
-    <div class="cal">
-      <div class="cal-head"><button class="cal-nav" onclick="bodyPrev()">‹</button>
-        <span class="cal-title">${y} 年 ${m+1} 月</span>
-        <button class="cal-nav" onclick="bodyNext()">›</button></div>
-      <div class="cal-week">${wkShort.map(w=>`<span>${w}</span>`).join('')}</div>
-      <div class="cal-grid">${cells.map(c=>{
-        if(c===null) return '<span class="cal-cell empty"></span>';
-        const ds=ym+'-'+String(c).padStart(2,'0');
-        const rec=log.find(x=>x.date===ds); const isSel=ds===bodySel;
-        let cls='cal-cell'+(isSel?' sel':'')+(rec?' has':'');
-        let mk=rec?(rec.period?'🩸':(rec.states&&rec.states.length?'•':'')):'';
-        return `<span class="${cls}" onclick="bodySelect('${ds}')">${c}${mk?`<i class="cal-mark">${mk}</i>`:''}</span>`;
-      }).join('')}</div>
+    <div class="body-summary" id="bodySummary">${bodySummaryHTML()}</div>
+    <div class="body-actions">
+      <button class="btn btn-pink" id="bodyCalToggle" onclick="bodyToggleCal()">${calOpen?'📅 收起日历':'📅 展开日历'}</button>
+      <button class="btn btn-soft" onclick="bodyQuickAdd()">➕ 快速新增今日记录</button>
     </div>
-    <div class="sec-title">📝 记录 / 查看（${bodySel}）</div>
-    <div class="chips" id="bodyStates">${BODY_STATES.map(s=>`<button class="chip ${selStates.includes(s)?'on':''}" data-s="${s}" onclick="this.classList.toggle('on')">${s}</button>`).join('')}</div>
-    <div class="sec-title">生理期</div>
-    <button class="wear-btn ${selPer?'on':''}" id="bodyPer" onclick="this.classList.toggle('on')">${selPer?'🩸 今天是生理期':'🩶 标记生理期'}</button>
-    <div class="sec-title">哪里不舒服 / 原因</div>
-    <textarea class="ta" id="bodyNote" placeholder="比如：肩颈酸痛，可能是昨天久坐 + 受凉">${esc(selNote)}</textarea>
-    <button class="btn btn-pink" style="width:100%;margin-top:6px" onclick="saveBody()">💾 保存记录</button>
-    <div class="sec-title">本月记录</div>
-    <div id="bodyHist">${bodyHistHTML(mLog)}</div>`;
+    <div class="body-cal-panel" id="bodyCalPanel" style="display:${calOpen?'block':'none'}">
+      <div class="cal">
+        <div class="cal-head"><button class="cal-nav" onclick="bodyPrev()">‹</button>
+          <span class="cal-title">${y} 年 ${m+1} 月</span>
+          <button class="cal-nav" onclick="bodyNext()">›</button></div>
+        <div class="cal-week">${wkShort.map(w=>`<span>${w}</span>`).join('')}</div>
+        <div class="cal-grid">${cells.map(c=>{
+          if(c===null) return '<span class="cal-cell empty"></span>';
+          const ds=ym+'-'+String(c).padStart(2,'0');
+          const rec=log.find(x=>x.date===ds); const isSel=ds===bodySel;
+          let cls='cal-cell'+(isSel?' sel':'')+(rec?' has':'');
+          let mk=rec?(rec.period?'🩸':(rec.states&&rec.states.length?'•':'')):'';
+          return `<span class="${cls}" onclick="bodySelect('${ds}')">${c}${mk?`<i class="cal-mark">${mk}</i>`:''}</span>`;
+        }).join('')}</div>
+      </div>
+    </div>
+    <div class="body-rec-panel" id="bodyRecPanel" style="display:${recOpen?'block':'none'}">
+      <div class="sec-title">📝 记录 / 查看（${bodySel}）</div>
+      <div class="chips" id="bodyStates">${BODY_STATES.map(s=>`<button class="chip ${selStates.includes(s)?'on':''}" data-s="${s}" onclick="this.classList.toggle('on')">${s}</button>`).join('')}</div>
+      <div class="sec-title">生理期</div>
+      <button class="wear-btn ${selPer?'on':''}" id="bodyPer" onclick="this.classList.toggle('on')">${selPer?'🩸 今天是生理期':'🩶 标记生理期'}</button>
+      <div class="sec-title">哪里不舒服 / 原因</div>
+      <textarea class="ta" id="bodyNote" placeholder="比如：肩颈酸痛，可能是昨天久坐 + 受凉">${esc(selNote)}</textarea>
+      <button class="btn btn-pink" style="width:100%;margin-top:6px" onclick="saveBody()">💾 保存记录</button>
+      <div class="sec-title">本月记录</div>
+      <div id="bodyHist">${bodyHistHTML(mLog)}</div>
+    </div>`;
 }
 function bodyPrev(){ if(bodyView.m===0){bodyView.m=11;bodyView.y--;}else bodyView.m--; setRoute('body'); }
 function bodyNext(){ if(bodyView.m===11){bodyView.m=0;bodyView.y++;}else bodyView.m++; setRoute('body'); }
-function bodySelect(ds){ bodySel=ds; setRoute('body'); }
+function bodySelect(ds){ bodySel=ds; window._bodyCalOpen=true; window._bodyRecOpen=true; setRoute('body'); }
 function bodyHistHTML(log){ return log.slice().reverse().map(x=>`<div class="row" style="flex-direction:column;align-items:stretch;gap:4px">
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
     <span class="tag">${x.date}</span>${x.period?'<span class="schip s-收藏">🩸生理期</span>':''}
@@ -2589,6 +2622,45 @@ function saveBody(){
   setRoute('body');
 }
 function delBody(date){ let log=bodyLog(); log=log.filter(x=>x.date!==date); setBodyLog(log); setRoute('body'); }
+
+function bodySummaryHTML(){
+  const log=bodyLog();
+  const todayRec=log.find(x=>x.date===keyDate);
+  const perLog=log.filter(x=>x.period).map(x=>x.date).sort();
+  const monthYm=bodyView.y+'-'+String(bodyView.m+1).padStart(2,'0');
+  const mLog=log.filter(x=>x.date.startsWith(monthYm));
+  const lines=[];
+  if(todayRec){
+    const parts=[];
+    if(todayRec.states&&todayRec.states.length) parts.push(todayRec.states.map(s=>`<span class="schip s-孵化中">${esc(s)}</span>`).join(''));
+    if(todayRec.period) parts.push('<span class="schip s-收藏">🩸生理期</span>');
+    const note=todayRec.note?`<span class="body-sum-note">${esc(todayRec.note)}</span>`:'';
+    lines.push(`<div class="body-sum-line"><b>今日已记录</b>：${parts.join(' ') || '状态正常'} ${note}</div>`);
+  }else{
+    lines.push(`<div class="body-sum-line body-sum-tip">今日还没有体感记录，点击「展开日历」选择日期记录 👆</div>`);
+  }
+  if(perLog.length){
+    const last=perLog[perLog.length-1];
+    lines.push(`<div class="body-sum-line body-sum-per">🩸 已记录 ${perLog.length} 天生理期（最近 ${last}），注意身体保暖、避免生冷、多休息 💗</div>`);
+  }
+  if(mLog.length===0){
+    lines.push(`<div class="body-sum-line body-sum-empty">暂无体感记录，展开日历，开始记录你的身体状态吧 ✨</div>`);
+  }
+  return lines.join('');
+}
+function bodyToggleCal(){
+  window._bodyCalOpen=!window._bodyCalOpen;
+  window._bodyRecOpen=!!window._bodyCalOpen;
+  const cal=document.getElementById('bodyCalPanel');
+  const rec=document.getElementById('bodyRecPanel');
+  const btn=document.getElementById('bodyCalToggle');
+  if(cal) cal.style.display=window._bodyCalOpen?'block':'none';
+  if(rec) rec.style.display=window._bodyRecOpen?'block':'none';
+  if(btn) btn.textContent=window._bodyCalOpen?'📅 收起日历':'📅 展开日历';
+}
+function bodyQuickAdd(){
+  bodySel=keyDate; window._bodyCalOpen=false; window._bodyRecOpen=true; setRoute('body');
+}
 
 /* ===== 良品宜物 ===== */
 function viewGoods(){

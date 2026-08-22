@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20250822e';
+  var WB_VER='20250822f';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1006,14 +1006,15 @@
 .sheet-imgs .si .x{ position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--kitty-red); color:#fff; font-size:12px; line-height:18px; text-align:center; cursor:pointer; }
 .sheet-imgs .add{ width:56px; height:56px; border-radius:10px; border:1px dashed var(--line); background:#fff; color:#bba; font-size:24px; cursor:pointer; }
 /* 图片预览 */
-.imgprev-mask{ position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9500; display:none; align-items:center; justify-content:center; touch-action:none; }
-.imgprev-mask.show{ display:flex; }
-.imgprev-mask img{ max-width:94vw; max-height:80vh; border-radius:8px; transition:transform .1s; will-change:transform; }
-.imgprev-mask .pg{ position:absolute; top:16px; left:50%; transform:translateX(-50%); color:#fff; font-size:14px; background:rgba(0,0,0,.5); padding:4px 12px; border-radius:12px; }
-.imgprev-mask .close-x{ position:absolute; top:14px; left:16px; color:#fff; font-size:26px; cursor:pointer; z-index:2; }
-.imgprev-mask .del-x{ position:absolute; top:14px; right:16px; color:#fff; font-size:24px; cursor:pointer; z-index:2; display:none; }
-.imgprev-mask .nav{ position:absolute; top:50%; transform:translateY(-50%); color:#fff; font-size:36px; cursor:pointer; padding:10px; user-select:none; }
-.imgprev-mask .nav.l{ left:6px; } .imgprev-mask .nav.r{ right:6px; }
+.imgprev-mask{ position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; display:flex; align-items:center; justify-content:center; touch-action:none; opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s ease; }
+.imgprev-mask.show{ opacity:1; visibility:visible; }
+.imgprev-mask img{ max-width:92vw; max-height:82vh; border-radius:10px; object-fit:contain; will-change:transform; }
+.imgprev-mask .pg{ position:absolute; top:16px; left:50%; transform:translateX(-50%); color:#fff; font-size:14px; background:rgba(0,0,0,.45); padding:4px 14px; border-radius:14px; }
+.imgprev-mask .close-x{ position:absolute; top:14px; left:14px; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.2); color:#fff; font-size:24px; line-height:34px; text-align:center; cursor:pointer; z-index:5; }
+.imgprev-mask .del-x{ position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.2); color:#fff; font-size:19px; line-height:34px; text-align:center; cursor:pointer; z-index:5; display:none; }
+.imgprev-mask .nav{ position:absolute; top:50%; transform:translateY(-50%); color:#fff; font-size:34px; cursor:pointer; padding:12px 16px; user-select:none; z-index:5; }
+.imgprev-mask .nav.l{ left:2px; } .imgprev-mask .nav.r{ right:2px; }
+.imgprev-mask .ld{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:14px; background:rgba(0,0,0,.45); padding:8px 18px; border-radius:20px; display:none; z-index:4; }
 
 </style>
 <script src="https://beacon.cdn.qq.com/sdk/4.5.9/beacon_web.min.js"></script><script>
@@ -2469,28 +2470,38 @@ function skinNewId(){ return 'sk'+Date.now().toString(36)+Math.floor(Math.random
 
 /* ---- 全局图片预览（轻量，支持左右切换/双击缩放/页码/删除）---- */
 let _ip={urls:[],i:0,scale:1,editable:false,onDel:null,startX:0,moved:false};
+function applyImgT(){ const m=document.getElementById('imgprevMask'); if(!m) return; const img=m.querySelector('img'); img.style.transform='translate('+(_ip.tx||0)+'px,'+(_ip.ty||0)+'px) scale('+(_ip.scale||1)+')'; }
 function openImagePreview(urls,idx,editable,onDel){
   if(!urls||!urls.length) return;
-  _ip={urls:urls.slice(),i:idx||0,scale:1,editable:!!editable,onDel:onDel||null,startX:0,moved:false};
   const m=document.getElementById('imgprevMask'); if(!m) return;
+  _ip={urls:urls.slice(),i:idx||0,scale:1,tx:0,ty:0,editable:!!editable,onDel:onDel||null,startX:0,startY:0,moved:false,pd:0,ps:1,sTx:0,sTy:0,lastX:0,lastT:0,vel:0,trackX:0};
   m.classList.add('show');
+  document.body.style.overflow='hidden';
   skinIpRender();
 }
 function skinIpRender(){
   const m=document.getElementById('imgprevMask'); if(!m) return;
   const img=m.querySelector('img');
-  img.src=_ip.urls[_ip.i];
-  img.style.transform='scale(1)';
-  m.querySelector('.pg').textContent=(_ip.i+1)+'/'+_ip.urls.length;
+  _ip.scale=1; _ip.tx=0; _ip.ty=0;
+  img.style.transition='transform .2s ease';
+  img.style.transform='translate(0px,0px) scale(1)';
+  m.querySelector('.pg').textContent='['+(_ip.i+1)+'/'+_ip.urls.length+']';
   m.querySelector('.del-x').style.display=_ip.editable?'block':'none';
+  const ld=m.querySelector('.ld'); if(ld) ld.style.display='flex';
+  img.onload=()=>{ if(ld) ld.style.display='none'; };
+  img.src=_ip.urls[_ip.i];
+  if(img.complete && img.naturalWidth){ if(ld) ld.style.display='none'; }
 }
-function skinIpClose(){ document.getElementById('imgprevMask').classList.remove('show'); }
-function skinIpNav(dir){ _ip.i=(_ip.i+dir+_ip.urls.length)%_ip.urls.length; skinIpRender(); }
-function skinIpZoom(){ const img=document.getElementById('imgprevMask').querySelector('img'); _ip.scale=_ip.scale>1?1:2; img.style.transform='scale('+_ip.scale+')'; }
+function skinIpClose(){ const m=document.getElementById('imgprevMask'); if(!m) return; m.classList.remove('show'); document.body.style.overflow=''; }
+function skinIpNav(dir){
+  const m=document.getElementById('imgprevMask'); const img=m.querySelector('img');
+  img.style.transition='opacity .18s ease'; img.style.opacity='0';
+  setTimeout(()=>{ _ip.i=(_ip.i+dir+_ip.urls.length)%_ip.urls.length; skinIpRender(); img.style.opacity='1'; },160);
+}
+function skinIpZoom(){ const m=document.getElementById('imgprevMask'); const img=m.querySelector('img'); _ip.scale=_ip.scale>1?1:2; _ip.tx=0; _ip.ty=0; img.style.transition='transform .2s ease'; img.style.transform='translate(0px,0px) scale('+_ip.scale+')'; }
 function skinIpDel(){
   if(!_ip.editable||!_ip.onDel) return;
-  const removed=_ip.urls[_ip.i];
-  _ip.urls.splice(_ip.i,1);
+  const removed=_ip.urls[_ip.i]; _ip.urls.splice(_ip.i,1);
   if(_ip.onDel) _ip.onDel(_ip.i,removed);
   if(!_ip.urls.length){ skinIpClose(); return; }
   _ip.i=Math.min(_ip.i,_ip.urls.length-1); skinIpRender();
@@ -2501,20 +2512,33 @@ function skinIpBind(){
   m.querySelector('.del-x').onclick=skinIpDel;
   m.querySelector('.nav.l').onclick=()=>skinIpNav(-1);
   m.querySelector('.nav.r').onclick=()=>skinIpNav(1);
-  m.querySelector('img').onclick=skinIpZoom;
-  m.querySelector('img').ondblclick=skinIpZoom;
-  m.onclick=(e)=>{ if(e.target===m) skinIpClose(); };
-  let sx=0,sy=0,pd=0,ps=1;
+  m.querySelector('img').onclick=(e)=>{ e.stopPropagation(); };
+  m.querySelector('img').ondblclick=(e)=>{ e.stopPropagation(); skinIpZoom(); };
+  m.addEventListener('wheel',e=>{ e.preventDefault(); const img=m.querySelector('img'); _ip.scale=Math.min(3,Math.max(1,_ip.scale*(e.deltaY<0?1.2:0.83))); _ip.tx=0; _ip.ty=0; applyImgT(); },{passive:false});
+  m.onclick=(e)=>{ if(e.target===m||(e.target.classList&&e.target.classList.contains('ld'))) skinIpClose(); };
+  let sx=0,sy=0,pd=0,ps=1,sTx=0,sTy=0;
   m.addEventListener('touchstart',e=>{
-    if(e.touches.length>=2){ pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); ps=_ip.scale; _ip.moved=true; }
-    else { sx=e.touches[0].clientX; sy=e.touches[0].clientY; _ip.moved=false; }
+    const img=m.querySelector('img');
+    if(e.touches.length>=2){ pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); ps=_ip.scale; sTx=_ip.tx; sTy=_ip.ty; _ip.moved=true; }
+    else { sx=e.touches[0].clientX; sy=e.touches[0].clientY; sTx=_ip.tx; sTy=_ip.ty; _ip.moved=false; _ip.lastX=e.touches[0].clientX; _ip.lastT=Date.now(); _ip.vel=0; _ip.trackX=0; }
   },{passive:true});
   m.addEventListener('touchmove',e=>{
     const img=m.querySelector('img');
-    if(e.touches.length>=2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); if(pd>0){ _ip.scale=Math.min(4,Math.max(0.5, ps*d/pd)); img.style.transform='scale('+_ip.scale+')'; } _ip.moved=true; }
-    else if(e.touches.length===1){ if(Math.abs(e.touches[0].clientX-sx)>40) _ip.moved=true; }
+    if(e.touches.length>=2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); if(pd>0){ _ip.scale=Math.min(3,Math.max(1, ps*d/pd)); _ip.tx=sTx; _ip.ty=sTy; applyImgT(); } _ip.moved=true; }
+    else if(e.touches.length===1){
+      const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+      if(_ip.scale>1){ _ip.tx=sTx+dx; _ip.ty=sTy+dy; applyImgT(); }
+      else { const now=Date.now(); if(now-_ip.lastT>0){ _ip.vel=(e.touches[0].clientX-_ip.lastX)/(now-_ip.lastT); } _ip.lastX=e.touches[0].clientX; _ip.lastT=now; _ip.trackX=dx; if(Math.abs(dx)>8) _ip.moved=true; }
+    }
   },{passive:true});
-  m.addEventListener('touchend',e=>{ if(_ip.moved && e.touches.length===0 && pd<=0){ const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>40) skinIpNav(dx<0?1:-1); } pd=0; },{passive:true});
+  m.addEventListener('touchend',e=>{
+    if(_ip.scale>1){ return; }
+    if(_ip.moved && e.touches.length===0 && pd<=0){
+      const dx=e.changedTouches[0].clientX-sx;
+      if(Math.abs(dx)>40 || Math.abs(_ip.vel)>0.25) skinIpNav(dx<0?1:-1);
+    }
+    pd=0;
+  },{passive:true});
 }
 
 /* ---- 底部弹层 ---- */
@@ -3368,7 +3392,7 @@ function wardInner(){
 function wardCard(x,cat,worn){
   const on=worn[cat]===x.id;
   return `<div class="ward-card ${on?'on':''}" onclick="wardSelect('${cat}',${x.id})">
-    ${x.img?`<img class="ward-img" src="${x.img}">`:`<div class="ward-ph">${catIcon(x.cat)}</div>`}
+    ${x.img?`<img class="ward-img" src="${x.img}" onclick="openImagePreview([this.src],0)">`:`<div class="ward-ph">${catIcon(x.cat)}</div>`}
     <div class="wi-name">${esc(x.name)}</div>
     <div class="wi-sub">${x.color?esc(x.color)+' · ':''}${esc(x.season)}</div>
     ${on?`<div style="position:absolute;top:6px;left:6px;background:var(--kitty-red);color:#fff;border-radius:10px;font-size:11px;padding:1px 6px">已选</div>`:''}
@@ -3943,7 +3967,7 @@ function viewKaka(){
       <button class="btn btn-pink" style="width:100%" onclick="kakaAddMoment()">＋ 添加瞬间</button>
     </div>
     <div class="hist-scroll">${k.moments.length?k.moments.map((x,i)=>`<div class="kaka-moment">
-      ${x.img?`<img src="${x.img}">`:'<div class="kaka-emoji">🐶</div>'}
+      ${x.img?`<img src="${x.img}" onclick="openImagePreview([this.src],0)">`:'<div class="kaka-emoji">🐶</div>'}
       <div style="flex:1"><div style="font-weight:600">${esc(x.text||'')}</div><div style="font-size:12px;color:var(--ink-soft)">${x.date}${x.mood?' · '+x.mood:''}</div></div>
       <button class="del" onclick="kakaDelMoment(${i})">×</button></div>`).join(''):'<p style="color:var(--ink-soft)">还没有瞬间，记录一下卡卡今天干了啥～</p>'}</div>`;
 }
@@ -3972,7 +3996,7 @@ function kakaSaveHomeDate(){
 }
 
 /* ===== 旅行足迹 ===== */
-function zoomImg(src){ if(!src) return; const o=document.createElement('div'); o.className='imgzoom'; o.innerHTML='<img src="'+src+'">'; o.onclick=()=>o.remove(); document.body.appendChild(o); }
+function zoomImg(src){ openImagePreview([src],0); }
 function travelAdd(){
   const city=(document.getElementById('trCity').value||'').trim();
   if(!city){ alert('先填城市名吧～'); return; }
@@ -4911,6 +4935,6 @@ if (typeof window !== 'undefined') {
 
 <div id="sheetMask" class="sheet-mask" onclick="if(event.target===this)closeSheet()"></div>
 <div id="sheet" class="sheet"></div>
-<div id="imgprevMask" class="imgprev-mask"><span class="close-x">×</span><span class="del-x">🗑</span><span class="nav l">‹</span><span class="nav r">›</span><div class="pg">1/1</div><img src="" alt=""></div>
+<div id="imgprevMask" class="imgprev-mask"><span class="close-x">×</span><span class="del-x">🗑</span><span class="nav l">‹</span><span class="nav r">›</span><div class="pg">[1/1]</div><div class="ld">加载中…</div><img src="" alt=""></div>
 </body>
 </html>

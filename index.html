@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260823e';
+  var WB_VER='20260823f';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1227,6 +1227,14 @@ input[type=color]{width:52px;height:38px;border:1px solid var(--line);border-rad
 .kaka-hl{ margin-top:8px; }
 .kaka-hl-item{ display:flex; justify-content:space-between; padding:8px 12px; border-radius:10px; background:#fff; box-shadow:var(--u-shadow); margin-bottom:6px; font-size:13px; }
 .kaka-hl-item b{ color:var(--kitty-red); }
+.kaka-banner{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:14px}
+.kaka-banner-h{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.kaka-banner-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:10px;margin-bottom:6px;font-size:12px;cursor:pointer}
+.kaka-banner-item:last-child{margin-bottom:0}
+.kaka-banner-item.red{background:#fff0f2;color:#c2185b}
+.kaka-banner-item.orange{background:#fff8e1;color:#e65100}
+.kaka-banner-item.gray{background:#f5f5f5;color:var(--ink-soft)}
+.kaka-quick{display:flex;flex-direction:column}
 </style>
 <style>
 .wd-tabs{ display:flex; gap:8px; margin:10px 0; }
@@ -4551,6 +4559,42 @@ function applyKittyImgs(){
 }
 
 /* ===== 卡卡小狗模块 ===== */
+function kakaSmartReminders(){
+  const k=DB.get('kaka',DEF.kaka); const arr=[];
+  const defp={bath:15,groom:45,deworm:30};
+  ['bath','groom','deworm'].forEach(type=>{
+    const recs=k[type]||[]; const last=recs.length?recs[recs.length-1].date:null;
+    const period=(k.period&&k.period[type])||defp[type];
+    if(last){ const passed=kakaDaysBetween(last,keyDate); const remain=period-passed;
+      if(remain<0) arr.push({type,level:'red',text:KAKA_TYPES[type]+' 已超期 '+Math.abs(remain)+' 天',action:"kakaDone('"+type+"')"});
+      else if(remain<=3) arr.push({type,level:'orange',text:KAKA_TYPES[type]+' 还有 '+remain+' 天到期',action:"kakaDone('"+type+"')"});
+    } else { arr.push({type,level:'gray',text:KAKA_TYPES[type]+' 还没有记录',action:"kakaDone('"+type+"')"}); }
+  });
+  const feeds=k.feed||[]; const lastFeed=feeds.length?feeds[feeds.length-1].date:null;
+  if(lastFeed && kakaDaysBetween(lastFeed,keyDate)>=1) arr.push({type:'feed',level:'orange',text:'今天还没记录喂食哦',action:'kakaFeedRecord()'});
+  const weights=k.weight||[]; const lastW=weights.length?weights[weights.length-1].date:null;
+  if(lastW && kakaDaysBetween(lastW,keyDate)>=14) arr.push({type:'weight',level:'gray',text:'已超过两周没记录体重',action:'kakaWeightRecord()'});
+  const moodLog=k.moodLog||[]; if(moodLog.length>=3){ const last3=moodLog.slice(-3).map(x=>x.m); const bad=last3.filter(m=>m==='犯困'||m==='吃醋'||m==='高冷').length; if(bad>=2) arr.push({type:'mood',level:'orange',text:'卡卡最近情绪有点低落，多陪陪他吧',action:"kakaMoodSet('开心')"}); }
+  return arr;
+}
+function kakaDaysBetween(a,b){ return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000); }
+function kakaSmartBanner(){
+  const list=kakaSmartReminders().filter(x=>x.level!=='gray');
+  if(!list.length) return '';
+  return `<div class="kaka-banner"><div class="kaka-banner-h">🔔 智能提醒</div>${list.map((r,i)=>`<div class="kaka-banner-item ${r.level}" onclick="${r.action};event.stopPropagation()"><span>${r.text}</span><button class="btn btn-pink" style="padding:3px 10px;font-size:11px">处理</button></div>`).join('')}</div>`;
+}
+function kakaFeedRecord(){ openSheet('<h3>🍖 记录喂食</h3><div class="kaka-quick"><input id="kfWhat" placeholder="喂了什么（如：狗粮/罐头）" style="margin-bottom:8px;padding:8px;border-radius:10px;border:1px solid var(--line)"><input id="kfAmt" placeholder="分量（可选）" style="margin-bottom:12px;padding:8px;border-radius:10px;border:1px solid var(--line)"><button class="btn btn-pink" style="width:100%" onclick="kakaAddFeed()">保存记录</button></div>'); }
+function kakaAddFeed(){ const what=document.getElementById('kfWhat').value.trim(); if(!what){alert('先填喂食内容');return;} const amt=document.getElementById('kfAmt').value.trim(); const k=DB.get('kaka',DEF.kaka); k.feed=k.feed||[]; k.feed.push({date:keyDate,what,amt}); DB.set('kaka',k); closeSheet(); setRoute('kaka'); }
+function kakaWeightRecord(){ openSheet('<h3>⚖️ 记录体重</h3><div class="kaka-quick"><input id="kwVal" type="number" step="0.1" placeholder="体重（kg）" style="margin-bottom:12px;padding:8px;border-radius:10px;border:1px solid var(--line)"><button class="btn btn-pink" style="width:100%" onclick="kakaAddWeight()">保存</button></div>'); }
+function kakaAddWeight(){ const v=parseFloat(document.getElementById('kwVal').value); if(isNaN(v)||v<=0){alert('输入有效体重');return;} const k=DB.get('kaka',DEF.kaka); k.weight=k.weight||[]; k.weight.push({date:keyDate,val:v}); DB.set('kaka',k); closeSheet(); setRoute('kaka'); }
+function kakaWeightTrend(){
+  const k=DB.get('kaka',DEF.kaka); const ws=(k.weight||[]).slice(-6);
+  if(ws.length<2) return '';
+  const min=Math.min(...ws.map(x=>x.val)), max=Math.max(...ws.map(x=>x.val));
+  const range=max-min||1;
+  const pts=ws.map((x,i)=>{ const px=(i/(ws.length-1))*100; const py=100-((x.val-min)/range)*80-10; return `${px},${py}`; }).join(' ');
+  return `<div class="u-card" style="margin:10px 0"><div style="font-size:13px;font-weight:700;margin-bottom:8px">⚖️ 体重趋势（最近${ws.length}次）</div><svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100px;background:#fff8fa;border-radius:10px"><polyline points="${pts}" fill="none" stroke="var(--kitty-red)" stroke-width="2"/><circle cx="100" cy="${100-((ws[ws.length-1].val-min)/range)*80-10}" r="3" fill="var(--kitty-red)"/></svg><div style="font-size:12px;color:var(--ink-soft);margin-top:6px">最新 ${ws[ws.length-1].val}kg · ${ws[ws.length-1].date}</div></div>`;
+}
 function kakaFaceSVG(){ return `<svg class="kaka-face" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <ellipse cx="50" cy="62" rx="34" ry="30" fill="#fff" stroke="#e9d8c5" stroke-width="2"/>
   <ellipse cx="28" cy="40" rx="13" ry="17" fill="#fff" stroke="#e9d8c5" stroke-width="2"/>
@@ -4562,7 +4606,8 @@ function kakaFaceSVG(){ return `<svg class="kaka-face" viewBox="0 0 100 100" xml
   <circle cx="34" cy="66" r="3" fill="#f7a8b8"/><circle cx="66" cy="66" r="3" fill="#f7a8b8"/>
 </svg>`; }
 function kakaLast(arr){ if(!arr||!arr.length) return '尚无记录'; const d=arr[arr.length-1].date; return d; }
-let kakaMoodOpen=false, kakaHealthOpen=false;
+let kakaMoodOpen=false, kakaHealthOpen=false, kakaFeedOpen=false;
+const KAKA_TYPES={bath:'🛁 洗澡',groom:'✂️ 剪毛',deworm:'💊 驱虫',feed:'🍖 喂食',weight:'⚖️ 体重',mood:'💗 心情'};
 function kakaHuman(days){ if(days==null||days<0) return null; if(days<365) return Math.max(1,Math.round(days/365*15)); const y=Math.floor(days/365); let human=15+9; for(let i=2;i<=y;i++) human+=5; if(days%365>183) human+=2; return human; }
 function kakaRemindCard(type,ic,label){
   const k=DB.get('kaka',DEF.kaka);
@@ -4581,7 +4626,7 @@ function kakaRemindCard(type,ic,label){
 function kakaDone(type){ kakaEvent(type, type==='bath'?'🛁 洗澡':type==='groom'?'✂️ 剪毛':'💊 驱虫'); }
 function kakaSetPeriod(type){ const k=DB.get('kaka',DEF.kaka); const defp={bath:15,groom:45,deworm:30}; const cur=(k.period&&k.period[type])||defp[type]; const v=prompt('设置「'+(type==='bath'?'洗澡':type==='groom'?'剪毛':'驱虫')+'」提醒周期（天），当前 '+cur+'：', cur); if(v==null) return; const n=parseInt(v); if(!isNaN(n)&&n>0){ k.period=k.period||{}; k.period[type]=n; DB.set('kaka',k); setRoute('kaka'); } }
 function kakaHealth(){ const k=DB.get('kaka',DEF.kaka); const all=[]; ['bath','groom','deworm'].forEach(t=>{(k[t]||[]).forEach(d=>all.push({t:t,date:d.date||d}));}); all.sort((a,b)=>b.date<a.date?-1:1); if(!all.length) return '<div class="u-empty"><div class="e">📋</div><div class="t">还没有健康记录</div></div>'; const nm={bath:'🛁 洗澡',groom:'✂️ 剪毛',deworm:'💊 驱虫'}; return '<div class="kaka-hl">'+all.map(x=>`<div class="kaka-hl-item"><span>${nm[x.t]}</span><b>${x.date}</b></div>`).join('')+'</div>'; }
-function kakaQuickRecord(){ openSheet('<h3>＋ 快速记录</h3><div class="kaka-quick">'+['bath','groom','deworm'].map(t=>`<button class="btn btn-pink" style="width:100%;margin-bottom:8px" onclick="closeSheet();kakaEvent('${t}','${t==='bath'?'🛁 洗澡':t==='groom'?'✂️ 剪毛':'💊 驱虫'}')">${t==='bath'?'🛁 洗澡':t==='groom'?'✂️ 剪毛':'💊 驱虫'}</button>`).join('')+'</div>'); }
+function kakaQuickRecord(){ openSheet('<h3>＋ 快速记录</h3><div class="kaka-quick">'+[['bath','🛁 洗澡'],['groom','✂️ 剪毛'],['deworm','💊 驱虫'],['feed','🍖 喂食'],['weight','⚖️ 体重']].map(t=>`<button class="btn btn-pink" style="width:100%;margin-bottom:8px" onclick="closeSheet();${t[0]==='feed'?'kakaFeedRecord()':t[0]==='weight'?'kakaWeightRecord()':"kakaEvent('"+t[0]+"','"+t[1]+"')"}">${t[1]}</button>`).join('')+'</div>'); }
 function kakaMoodExpand(){ kakaMoodOpen=!kakaMoodOpen; setRoute('kaka'); }
 function viewKaka(){
   const k=DB.get('kaka',DEF.kaka);
@@ -4599,6 +4644,7 @@ function viewKaka(){
       </div>
       ${homeDays!==null?`<div class="kaka-days">已相伴 <b>${homeDays}</b> 天${human!=null?` · 🐶 相当于人类 <b>${human}</b> 岁`:''}</div>`:''}
     </div>
+    ${kakaSmartBanner()}
     <div class="page-title">卡卡の小天地</div>
     <div class="kaka-hero">
       <img data-img="dog" src="" alt="" style="width:80px;height:60px;object-fit:contain;flex:none">
@@ -4610,6 +4656,7 @@ function viewKaka(){
       ${kakaRemindCard('deworm','💊','驱虫')}
       <div class="kaka-stat"><div class="ki">💗</div><div class="kt">今日心情</div><div class="kv">${esc(k.mood)}</div></div>
     </div>
+    ${kakaWeightTrend()}
     <div class="sec-title">快速记录</div>
     <button class="btn btn-pink" style="width:100%" onclick="kakaQuickRecord()">＋ 快速记录</button>
     <div class="sec-title">今天卡卡心情</div>
@@ -4628,7 +4675,7 @@ function viewKaka(){
       <div style="flex:1"><div style="font-weight:600">${esc(x.text||'')}</div><div style="font-size:12px;color:var(--ink-soft)">${x.date}${x.mood?' · '+x.mood:''}</div></div>
       <button class="del" onclick="kakaDelMoment(${i})">×</button></div>`).join(''):'<p style="color:var(--ink-soft)">还没有瞬间，记录一下卡卡今天干了啥～</p>'}</div>`;
 }
-function kakaEvent(type,label){ const k=DB.get('kaka',DEF.kaka); k[type].push({date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
+function kakaEvent(type,label){ const k=DB.get('kaka',DEF.kaka); if(!['bath','groom','deworm'].includes(type)) return; k[type]=k[type]||[]; k[type].push({date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
 function kakaMoodSet(m){ const k=DB.get('kaka',DEF.kaka); k.mood=m; k.moodLog.push({m,date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
 function kakaAddMoment(){ const t=document.getElementById('kakaText').value.trim(); if(!t)return; const f=document.getElementById('kakaImg'); const k=DB.get('kaka',DEF.kaka); const add=()=>{ k.moments.push({text:t,mood:k.mood,date:keyDate,img:f.__img||''}); DB.set('kaka',k); setRoute('kaka'); }; if(f.files&&f.files[0]){ const r=new FileReader(); r.onload=()=>{f.__img=r.result;add();}; r.readAsDataURL(f.files[0]); } else add(); }
 function kakaDelMoment(i){ const k=DB.get('kaka',DEF.kaka); k.moments.splice(i,1); DB.set('kaka',k); setRoute('kaka'); }

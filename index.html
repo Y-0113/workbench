@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260821a';
+  var WB_VER='20260822a';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -182,6 +182,7 @@
 
   .main{flex:1; display:flex; flex-direction:column; min-width:0}
   .topbar{
+    position:relative; z-index:60;
     height:60px; background:rgba(255,255,255,.72); border-bottom:1px solid var(--line);
     display:flex; align-items:center; justify-content:space-between; padding:0 22px;
     backdrop-filter:blur(8px); flex:none;
@@ -279,6 +280,7 @@
   .app.collapsed .sidebar{width:0 !important; min-width:0; padding-left:0; padding-right:0; border-right:none; opacity:0; pointer-events:none}
   .app.collapsed .nav-fab{display:flex}
   .app.collapsed .tb-left .home-btn{display:none}
+  .app.collapsed .topbar{padding-left:56px}
 
   /* ===== 通用卡片与按钮 ===== */
   .page-title{font-size:22px; font-weight:800; margin-bottom:4px; display:flex; align-items:center; gap:8px}
@@ -1229,11 +1231,11 @@ input[type=color]{width:52px;height:38px;border:1px solid var(--line);border-rad
     </div>
   </aside>
 
-  <button class="nav-fab" id="navFab" onclick="toggleNav()" title="展开菜单">🐱</button>
+  <button class="nav-fab" id="navFab" onclick="toggleNav()" title="展开菜单"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b4a55" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 L12 3.5 L21 12"/><path d="M5.2 12 V20.5 H18.8 V12"/><rect x="15.6" y="5" width="2.8" height="5" rx="0.4"/><path d="M10 20.5 V16 H14 V20.5"/><rect x="6.8" y="14" width="3" height="3" rx="0.5"/></svg></button>
   <main class="main">
     <header class="topbar">
       <div class="tb-left">
-        <button class="home-btn" onclick="setRoute('home')">🏠</button>
+        <button class="home-btn" onclick="setRoute('home')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b4a55" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 L12 3.5 L21 12"/><path d="M5.2 12 V20.5 H18.8 V12"/><rect x="15.6" y="5" width="2.8" height="5" rx="0.4"/><path d="M10 20.5 V16 H14 V20.5"/><rect x="6.8" y="14" width="3" height="3" rx="0.5"/></svg></button>
         <span>个人专属工作台</span>
       </div>
       <div class="tb-right">

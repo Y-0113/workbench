@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260823b';
+  var WB_VER='20260823c';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -832,9 +832,17 @@
 .search-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ===== 旅行足迹地图（3D 地球） ===== */
-.travel-earth-card{position:relative;background:#0b1f33;border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow)}
-.travel-map3d{width:100%;height:42vh;min-height:300px}
+.travel-earth-card{position:relative;background:linear-gradient(180deg,#0b1f33 0%,#143a5c 100%);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow)}
+.travel-map3d{width:100%;height:42vh;min-height:300px;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%)}
 .travel-map3d canvas{display:block}
+.travel-map2d{width:100%;height:42vh;min-height:300px;position:relative;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%);overflow:hidden}
+.travel-map2d svg{position:absolute;inset:0;width:100%;height:100%}
+.map-land{fill:#2d6a4f;stroke:#3d8b61;stroke-width:0.6;opacity:.55}
+.map-pin-group{cursor:pointer;pointer-events:all}
+.map-pin-dot{width:12px;height:12px;border-radius:50%;background:#E88B9E;border:2px solid #fff;box-shadow:0 0 0 2px rgba(232,139,158,.3)}
+.map-pin-label{margin-top:4px;font-size:11px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);white-space:nowrap;font-weight:600}
+.map-dist-label{position:absolute;transform:translate(-50%,-100%);font-size:10px;color:#fff;background:rgba(0,0,0,.35);padding:2px 6px;border-radius:10px;white-space:nowrap;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+@keyframes pinBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
 .travel-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#eaf4ff;font-size:15px;font-weight:600;background:rgba(8,24,40,.38);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:20px;z-index:5}
 .travel-fab{position:absolute;right:14px;bottom:14px;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--kitty-pink),var(--kitty-red));color:#fff;font-size:28px;line-height:48px;cursor:pointer;box-shadow:0 6px 18px rgba(232,72,92,.45);transition:.15s;z-index:6}
 .travel-fab:hover{transform:scale(1.08)}
@@ -1614,7 +1622,7 @@ function setRoute(id){
   window.scrollTo(0,0);
   if(id==='english') setTimeout(renderNCE,0);
   if(id==='recipe') setTimeout(rcBindImgPreview,0);
-  if(id==='travel') setTimeout(initTravelEarth,0);
+  if(id==='travel') setTimeout(initTravelEarth,80);
   if(id==='market') setTimeout(mktStartTimers,0);
   if(id==='skin') checkSkinReminders();
 }
@@ -4057,80 +4065,126 @@ function initTravelEarth(){
   const cities=travelCitiesAgg();
   const empty=document.getElementById('travelEmpty');
   if(empty) empty.style.display = cities.length? 'none':'flex';
-  // 降级：无 WebGL / echarts 缺失 → 2D 平面地图
-  if(!webglOK() || typeof echarts==='undefined' || typeof echarts.init!=='function'){ travelRender2D(el,cities); return; }
+  // 若 echarts 尚未加载（defer 脚本可能晚于路由），等待后重试
+  if(typeof echarts==='undefined' || typeof echarts.init!=='function'){
+    const r=(parseInt(el.dataset.retry||'0',10))+1; el.dataset.retry=String(r);
+    if(r<=25){ setTimeout(initTravelEarth, 160); return; }
+    travelRender2D(el,cities); return;
+  }
+  el.className='travel-map3d';
+  // 无 WebGL 直接 2D
+  if(!webglOK()){ travelRender2D(el,cities); return; }
+  // 用隐藏测试容器验证 echarts-gl 是否真正支持 globe
+  let testEl=null;
+  try{
+    testEl=document.createElement('div'); testEl.style.cssText='width:10px;height:10px;position:absolute;left:-9999px;';
+    document.body.appendChild(testEl);
+    const testChart=echarts.init(testEl);
+    testChart.setOption({globe:{baseTexture:makeFallbackTexture(),radius:10},series:[]});
+    testChart.dispose(); document.body.removeChild(testEl);
+  }catch(e){
+    if(testEl && testEl.parentNode) document.body.removeChild(testEl);
+    travelRender2D(el,cities); return;
+  }
   let chart;
   try{
     chart=echarts.init(el);
     travelChart=chart;
   }catch(e){ travelRender2D(el,cities); return; }
+  const ordered=cities.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const latest=ordered.length? ordered[ordered.length-1]:null;
+  const normalPts=ordered.filter(c=>c!==latest).map(c=>({name:c.name, value:[c.coord[0],c.coord[1]]}));
+  const latestPts=latest? [{name:latest.name, value:[latest.coord[0],latest.coord[1]]}] : [];
+  const lineData=[], distData=[];
+  for(let i=0;i<ordered.length-1;i++){
+    const a=ordered[i], b=ordered[i+1];
+    lineData.push({coords:[[a.coord[0],a.coord[1]],[b.coord[0],b.coord[1]]]});
+    const d=haversine(a.coord[0],a.coord[1],b.coord[0],b.coord[1]);
+    const mlng=(a.coord[0]+b.coord[0])/2, mlat=(a.coord[1]+b.coord[1])/2;
+    distData.push({name:'+'+d+'km', value:[mlng,mlat,0.3]});
+  }
+  const globeOpt={
+    backgroundColor:'transparent',
+    globe:{
+      baseTexture: makeFallbackTexture(),
+      shading:'realistic',
+      realisticMaterial:{roughness:0.8, metalness:0},
+      radius:100,
+      viewControl:{ autoRotate:false, rotateSensitivity:1, zoomSensitivity:1, distance:200, minDistance:130, maxDistance:340, center:[104,35], alpha:10, beta:0 },
+      atmosphere:{ show:true, offset:8, color:'#7ec8ff' },
+      light:{ ambient:{intensity:0.7}, main:{intensity:1.0, shadow:false} }
+    },
+    series:[
+      { id:'ln', type:'lines3D', coordinateSystem:'globe',
+        effect:{show:true, period:4, trailWidth:2, trailLength:0.3, trailOpacity:0.8, trailColor:'#4A90D9'},
+        blendMode:'lighter',
+        lineStyle:{ color:'#4A90D9', width:1.5, opacity:0.6 }, data:lineData },
+      { id:'mk', type:'scatter3D', coordinateSystem:'globe', name:'cities',
+        symbol:'circle', symbolSize:12,
+        itemStyle:{ color:'#E88B9E', opacity:0.95, borderColor:'#fff', borderWidth:2 },
+        label:{ show: cities.length<=50, formatter:'{b}', position:'top', color:'#fff', fontSize:12, textBorderColor:'#333', textBorderWidth:2 },
+        emphasis:{ label:{show:true,fontSize:14}, itemStyle:{color:'#FF6B8A'} }, data:normalPts },
+      { id:'lt', type:'scatter3D', coordinateSystem:'globe', name:'latest',
+        symbol:'circle', symbolSize:16,
+        itemStyle:{ color:'#FF6B8A', opacity:1, borderColor:'#fff', borderWidth:2 }, data:latestPts },
+      { id:'dt', type:'scatter3D', coordinateSystem:'globe', name:'dist',
+        symbol:'none',
+        label:{ show:true, formatter:'{b}', color:'#fff', fontSize:11, textBorderColor:'#333', textBorderWidth:2, position:'top' }, data:distData }
+    ]
+  };
   try{
-    const ordered=cities.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-    const latest=ordered.length? ordered[ordered.length-1]:null;
-    const normalPts=ordered.filter(c=>c!==latest).map(c=>({name:c.name, value:[c.coord[0],c.coord[1]]}));
-    const latestPts=latest? [{name:latest.name, value:[latest.coord[0],latest.coord[1]]}] : [];
-    const lineData=[], distData=[];
-    for(let i=0;i<ordered.length-1;i++){
-      const a=ordered[i], b=ordered[i+1];
-      lineData.push({coords:[[a.coord[0],a.coord[1]],[b.coord[0],b.coord[1]]]});
-      const d=haversine(a.coord[0],a.coord[1],b.coord[0],b.coord[1]);
-      const mlng=(a.coord[0]+b.coord[0])/2, mlat=(a.coord[1]+b.coord[1])/2;
-      distData.push({name:'+'+d+'km', value:[mlng,mlat,0.3]});
+    chart.setOption(globeOpt);
+  }catch(e){ travelRender2D(el,cities); return; }
+  // 4 秒后若 chart 仍空白，降级 2D
+  setTimeout(()=>{
+    if(travelChart!==chart) return;
+    const cv=el.querySelector('canvas');
+    if(!cv || cv.width<10 || cv.height<10){ travelRender2D(el,cities); return; }
+  }, 4000);
+  loadSatTexture(img=>{ if(img && travelChart===chart) chart.setOption({globe:{baseTexture:img}}); });
+  if(latest){
+    let t=0;
+    travelBreathTimer=setInterval(()=>{
+      if(travelChart!==chart){ clearInterval(travelBreathTimer); travelBreathTimer=null; return; }
+      t+=0.4; const ss=16+3*Math.sin(t);
+      chart.setOption({series:[{id:'lt', symbolSize:ss}]});
+    },400);
+  }
+  chart.on('click', p=>{
+    if(p.seriesType==='scatter3D' && (p.seriesName==='cities'||p.seriesName==='latest')){
+      showCityInfo(p.name, p.event?p.event.offsetX:null, p.event?p.event.offsetY:null);
     }
-    chart.setOption({
-      backgroundColor:'transparent',
-      globe:{
-        baseTexture: makeFallbackTexture(),
-        shading:'realistic',
-        realisticMaterial:{roughness:0.8, metalness:0},
-        radius:100,
-        viewControl:{ autoRotate:false, rotateSensitivity:1, zoomSensitivity:1, distance:200, minDistance:130, maxDistance:340, center:[104,35] },
-        atmosphere:{ show:true, offset:8, color:'#7ec8ff' },
-        light:{ ambient:{intensity:0.7}, main:{intensity:1.0, shadow:false} }
-      },
-      series:[
-        { id:'ln', type:'lines3D', coordinateSystem:'globe',
-          effect:{show:true, period:4, trailWidth:2, trailLength:0.3, trailOpacity:0.8, trailColor:'#4A90D9'},
-          blendMode:'lighter',
-          lineStyle:{ color:'#4A90D9', width:1.5, opacity:0.6 }, data:lineData },
-        { id:'mk', type:'scatter3D', coordinateSystem:'globe', name:'cities',
-          symbol:'circle', symbolSize:12,
-          itemStyle:{ color:'#E88B9E', opacity:0.95, borderColor:'#fff', borderWidth:2 },
-          label:{ show: cities.length<=50, formatter:'{b}', position:'top', color:'#fff', fontSize:12, textBorderColor:'#333', textBorderWidth:2 },
-          emphasis:{ label:{show:true,fontSize:14}, itemStyle:{color:'#FF6B8A'} }, data:normalPts },
-        { id:'lt', type:'scatter3D', coordinateSystem:'globe', name:'latest',
-          symbol:'circle', symbolSize:16,
-          itemStyle:{ color:'#FF6B8A', opacity:1, borderColor:'#fff', borderWidth:2 }, data:latestPts },
-        { id:'dt', type:'scatter3D', coordinateSystem:'globe', name:'dist',
-          symbol:'none',
-          label:{ show:true, formatter:'{b}', color:'#fff', fontSize:11, textBorderColor:'#333', textBorderWidth:2, position:'top' }, data:distData }
-      ]
-    });
-    loadSatTexture(img=>{ if(img && travelChart===chart) chart.setOption({globe:{baseTexture:img}}); });
-    if(latest){
-      let t=0;
-      travelBreathTimer=setInterval(()=>{
-        if(travelChart!==chart){ clearInterval(travelBreathTimer); travelBreathTimer=null; return; }
-        t+=0.4; const ss=16+3*Math.sin(t);
-        chart.setOption({series:[{id:'lt', symbolSize:ss}]});
-      },400);
-    }
-    chart.on('click', p=>{
-      if(p.seriesType==='scatter3D' && (p.seriesName==='cities'||p.seriesName==='latest')){
-        showCityInfo(p.name, p.event?p.event.offsetX:null, p.event?p.event.offsetY:null);
-      }
-    });
-  }catch(e){ travelRender2D(el,cities); }
+  });
 }
 function travelRender2D(el, cities){
   if(!el) return;
-  const dots=cities.map(c=>{
-    const x=((c.coord[0]-73)/47*100).toFixed(1);
-    const y=(100-((c.coord[1]-18)/36*100)).toFixed(1);
-    return '<div class="map-pin" style="left:'+x+'%;top:'+y+'" title="'+esc(c.name)+'"><span class="map-pin-dot"></span><span class="map-pin-label">'+esc(c.name)+'</span></div>';
-  }).join('');
   el.className='travel-map2d';
-  el.innerHTML='<div class="map-outline">🇨🇳 我的旅行足迹（2D）</div>'+dots;
+  const ordered=cities.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const latest=ordered.length? ordered[ordered.length-1]:null;
+  const W=1000, H=500;
+  const lng2x=lng=>(lng+30)/210*W;
+  const lat2y=lat=>H-(lat+10)/80*H;
+  let arcs='', dists='';
+  for(let i=0;i<ordered.length-1;i++){
+    const a=ordered[i], b=ordered[i+1];
+    const x1=lng2x(a.coord[0]), y1=lat2y(a.coord[1]);
+    const x2=lng2x(b.coord[0]), y2=lat2y(b.coord[1]);
+    const mx=(x1+x2)/2, my=(y1+y2)/2-40;
+    arcs += '<path d="M'+x1+','+y1+' Q'+mx+','+my+' '+x2+','+y2+'" fill="none" stroke="#4A90D9" stroke-width="2" stroke-opacity="0.6" stroke-linecap="round"/>';
+    arcs += '<circle r="3" fill="#7ec8ff"><animateMotion path="M'+x1+','+y1+' Q'+mx+','+my+' '+x2+','+y2+'" dur="4s" repeatCount="indefinite"/></circle>';
+    const d=haversine(a.coord[0],a.coord[1],b.coord[0],b.coord[1]);
+    dists += '<text x="'+mx+'" y="'+(my-6)+'" fill="#fff" font-size="11" text-anchor="middle" stroke="#333" stroke-width="2" paint-order="stroke">+'+d+'km</text>';
+  }
+  let dotsHtml='';
+  ordered.forEach(c=>{
+    const x=lng2x(c.coord[0]), y=lat2y(c.coord[1]);
+    const isLatest = latest && c.name===latest.name;
+    dotsHtml += '<g class="map-pin-group" onclick="showCityInfo(this.dataset.city,0,0)" data-city="'+esc(c.name)+'">'+
+      '<circle cx="'+x+'" cy="'+y+'" r="'+(isLatest?8:6)+'" fill="'+(isLatest?'#FF6B8A':'#E88B9E')+'" stroke="#fff" stroke-width="2">'+(isLatest?'<animate attributeName="r" values="8;10;8" dur="1.6s" repeatCount="indefinite"/>':'')+'</circle>'+
+      '<text x="'+x+'" y="'+(y-12)+'" fill="#fff" font-size="12" text-anchor="middle" stroke="#333" stroke-width="2" paint-order="stroke">'+esc(c.name)+'</text>'+
+      '</g>';
+  });
+  el.innerHTML = '<svg viewBox="0 0 1000 500" preserveAspectRatio="none"><rect width="1000" height="500" fill="#1a4d7a"/><g class="map-land"><path d="M480,120 L520,115 L560,120 L600,130 L640,140 L670,150 L690,170 L700,200 L690,230 L670,250 L640,260 L600,265 L560,260 L520,250 L490,230 L470,200 L465,170 L470,140 Z"/><path d="M220,90 L280,80 L340,90 L390,110 L420,140 L430,180 L420,220 L390,250 L340,270 L280,280 L220,270 L170,250 L140,220 L130,180 L140,140 L170,110 Z"/><path d="M720,260 L780,250 L830,260 L870,280 L890,310 L880,340 L850,360 L800,370 L750,360 L720,340 L710,310 L715,280 Z"/><path d="M80,300 L130,290 L180,300 L210,330 L220,370 L200,400 L160,420 L110,415 L70,390 L55,350 L60,320 Z"/><path d="M450,320 L510,310 L560,320 L590,350 L600,390 L580,420 L540,435 L490,430 L450,410 L435,380 L440,350 Z"/><path d="M780,120 L820,115 L860,120 L890,140 L905,170 L900,200 L870,220 L830,225 L790,215 L770,190 L765,160 L770,135 Z"/></g></svg><svg viewBox="0 0 1000 500" preserveAspectRatio="none" style="z-index:2">'+arcs+dists+dotsHtml+'</svg>';
 }
 function showCityInfo(name, x, y){
   const cities=travelCitiesAgg();

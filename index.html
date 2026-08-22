@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260823d';
+  var WB_VER='20260823e';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1126,6 +1126,48 @@ input[type=color]{width:52px;height:38px;border:1px solid var(--line);border-rad
 .xy-lock-thumb.sel{border-color:var(--kitty-red);}
 .xy-lock-thumb .xy-lock-name{position:absolute;left:0;right:0;bottom:0;font-size:9px;color:#fff;background:rgba(0,0,0,.4);padding:2px 0;text-align:center;}
 @media(max-width:600px){.xy-preset-grid{grid-template-columns:repeat(3,1fr);}}
+.wd-rec-row{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:10px 0}
+.wd-rec-cell{width:84px;background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 4px;text-align:center;cursor:pointer;transition:.15s}
+.wd-rec-cell img{width:56px;height:56px;object-fit:cover;border-radius:10px;background:#f3ede0}
+.wd-rec-ph{width:56px;height:56px;border-radius:10px;background:#f3ede0;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto}
+.wd-rec-n{font-size:11px;color:var(--ink);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-plus{font-size:20px;color:var(--ink-soft)}
+.wd-rec-h{font-weight:800;color:var(--ink);font-size:15px}
+.wd-rec-reason{font-size:12px;color:var(--ink-soft);background:#fff8fa;padding:10px 12px;border-radius:12px;margin:8px 0;line-height:1.5}
+.wd-rec-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.wd-sub{font-size:13px;font-weight:700;color:var(--ink);margin:16px 2px 8px}
+.wd-hist{display:flex;flex-direction:column;gap:8px}
+.wd-hist-item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.wd-hist-date{font-size:11px;color:var(--ink-soft)}
+.wd-hist-names{font-size:13px;color:var(--ink);margin-top:2px}
+.wd-warn{background:#fff8e1;border:1px solid #ffe0b2;border-radius:10px;padding:10px 12px;font-size:12px;color:#e65100;margin:8px 0}
+.wd-stats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;cursor:pointer}
+.wd-stats span{background:#fff;border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:12px;color:var(--ink-soft)}
+.wd-old{background:#fff0f3 !important;color:var(--kitty-red) !important}
+.wd-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.wd-cell{position:relative;background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px;text-align:center;cursor:pointer;transition:.12s}
+.wd-cell.on{border-color:var(--kitty-red);background:#fff0f3;box-shadow:0 0 0 3px rgba(232,72,92,.18)}
+.wd-cell img{width:100%;height:80px;object-fit:cover;border-radius:10px;background:#f3ede0}
+.wd-ph{width:100%;height:80px;border-radius:10px;background:#f3ede0;display:flex;align-items:center;justify-content:center;font-size:32px}
+.wd-cell-n{font-size:12px;color:var(--ink);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-cell-c{font-size:11px;color:var(--ink-soft)}
+.wd-add{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px}
+.wd-field{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.wd-fl{flex:none;font-size:12px;color:var(--ink-soft);min-width:48px}
+.color-row,.season-row{display:flex;gap:6px;flex-wrap:wrap}
+.color-sw{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);cursor:pointer}
+.color-sw.on{border-color:var(--kitty-red);box-shadow:0 0 0 2px rgba(232,72,92,.25)}
+.season-chip{padding:5px 10px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:12px;cursor:pointer}
+.season-chip.on{background:var(--kitty-red);color:#fff;border-color:var(--kitty-red)}
+.wd-img-prev{width:52px;height:52px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.wd-tabs{display:flex;gap:6px;margin:12px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.wd-tab{flex:1;padding:8px 4px;border:none;background:transparent;border-radius:10px;font-size:12px;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
+.wd-tab.on{background:#fff0f3;color:var(--kitty-red);font-weight:700}
+.wd-cal{display:flex;flex-direction:column;gap:10px}
+.wd-cal-day{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+.wd-cal-date{font-size:13px;font-weight:700;color:var(--kitty-red);margin-bottom:6px}
+.wd-cal-item{font-size:12px;color:var(--ink);padding:6px 0;border-bottom:1px dashed var(--line)}
+.wd-cal-item:last-child{border-bottom:none}
 </style>
 <style>
 :root{ --u-pink:#E88B9E; --u-shadow:0 2px 8px rgba(0,0,0,.04); }
@@ -3485,35 +3527,96 @@ function addRecipe(){
 function delRecipe(i){ let a=DB.get("recipe",DEF.recipe).map(normalizeRecipe); a.splice(i,1); DB.set("recipe",a); document.getElementById('recipeList').innerHTML=a.map((x,j)=>recipeCard(x,j)).join(''); }
 
 /* ===== 电子衣橱 ===== */
-let wdTab='outfit', wdCat='全部', wdWeatherFilter=false, wdCurRec=null, wdShowOld=false;
+let wdTab='outfit', wdCat='全部', wdWeatherFilter=false, wdCurRec=null, wdShowOld=false, wdOccasion='通勤';
+const WD_OCCASIONS=['通勤','约会','休闲','运动','正式'];
+function wdFavs(){ const w=wardData(); return w.favorites||[]; }
+function wdAddFav(){ if(!wdCurRec) return; const w=wardData(); w.favorites=w.favorites||[]; const ids=[wdCurRec.top,wdCurRec.bottom,wdCurRec.shoes,wdCurRec.coat,wdCurRec.acc].filter(Boolean); if(!ids.length){alert('先有一套搭配哦～');return;} const names=ids.map(id=>{const it=w.items.find(x=>x.id===id);return it?it.name:''}).filter(Boolean).join(' + '); w.favorites.unshift({id:Date.now(),name:names,items:ids,date:keyDate,occasion:wdOccasion}); DB.set('wardrobe',w); _ipShowHint?window._ipShowHint&&_ipShowHint('已收藏搭配'):alert('已收藏搭配'); setRoute('wardrobe'); }
+function wdDelFav(fid){ const w=wardData(); w.favorites=(w.favorites||[]).filter(x=>x.id!==fid); DB.set('wardrobe',w); setRoute('wardrobe'); }
+function wdApplyFav(fid){ const w=wardData(); const f=(w.favorites||[]).find(x=>x.id===fid); if(!f) return; w.worn=w.worn||{}; f.items.forEach(id=>{ const it=w.items.find(x=>x.id===id); if(it){w.worn[it.cat]=id; it.lastWorn=keyDate;} }); DB.set('wardrobe',w); wdCurRec=null; wdTab='outfit'; setRoute('wardrobe'); }
 let wardAddName='', wardAddColor='', wardAddSeason=[], wardAddImg='';
 function wardSeasonNow(){ const m=new Date().getMonth()+1; return (m>=3&&m<=5)?'春':(m>=6&&m<=8)?'夏':(m>=9&&m<=11)?'秋':'冬'; }
 function wdDaysAgo(d){ if(!d) return 9999; const a=new Date(d+'T00:00:00'); const b=new Date(keyDate+'T00:00:00'); return Math.round((b-a)/86400000); }
+function wdColorGroup(c){
+  const map={'白':'无','米':'无','黑':'深','灰':'深','棕':'暖','咖':'暖','驼':'暖','杏':'暖','粉':'暖','红':'暖','橙':'暖','黄':'暖','蓝':'冷','绿':'冷','紫':'冷','藏青':'冷','深蓝':'冷','牛仔':'冷','其他':'无'};
+  return map[c]||'无';
+}
+function wdColorTone(c){
+  const map={'白':'浅','米':'浅','杏':'浅','粉':'浅','黄':'浅','浅蓝':'浅','浅绿':'浅','灰':'中','蓝':'中','绿':'中','紫':'中','黑':'深','棕':'深','咖':'深','驼':'深','红':'深','橙':'深','藏青':'深','深蓝':'深','牛仔':'中','其他':'中'};
+  return map[c]||'中';
+}
+function wdColorHarmony(a,b){
+  if(!a||!b) return 0;
+  if(a===b) return 0.6;
+  const ga=wdColorGroup(a), gb=wdColorGroup(b);
+  const ta=wdColorTone(a), tb=wdColorTone(b);
+  let s=0;
+  if(ga==='无'||gb==='无') s+=0.7;
+  else if(ga!==gb) s+=0.5;
+  else s+=0.9;
+  if(ta===tb) s+=0.3;
+  else if((ta==='浅'&&tb==='深')||(ta==='深'&&tb==='浅')) s+=0.5;
+  else s+=0.2;
+  const bad=[['红','绿'],['粉','绿'],['橙','蓝'],['黄','紫']];
+  for(const [x,y] of bad){ if((a===x&&b===y)||(a===y&&b===x)) s-=0.4; }
+  return Math.max(0,Math.min(1,s));
+}
 function colorHex(c){ const m={'白':'#ffffff','黑':'#333333','灰':'#bdbdbd','粉':'#ffb3c7','蓝':'#7fb3e8','绿':'#9bd0a0','棕':'#b08968','其他':'#e0c3a0'}; return m[c]||'#dddddd'; }
-function wardComputeRec(){ const w=wardData(); const tw=DB.get('wardWeather',null); const t=tw?tw.temp:20; const curS=wardSeasonNow();
-  const pick=cat=>{ let base=w.items.filter(x=>x.cat===cat && ((x.season||'').split(',').indexOf(curS)>=0||(x.season||'').indexOf('四季')>=0)); if(wdWeatherFilter && t<12) base=base.filter(x=>!/(短袖|吊带|无袖|裙)/.test(x.name)); if(!base.length) base=w.items.filter(x=>x.cat===cat); return base; };
+function wardComputeRec(){
+  const w=wardData(); const tw=DB.get('wardWeather',null); const t=tw?tw.temp:20; const curS=wardSeasonNow();
+  const occ=wdOccasion||'通勤';
+  const keyFilter=(cat,it)=>{
+    const seas=(it.season||'').split(','); if(seas.indexOf(curS)<0 && seas.indexOf('四季')<0) return false;
+    if(wdWeatherFilter && t<12 && /(短袖|吊带|无袖|裙|短裤)/.test(it.name)) return false;
+    if(wdWeatherFilter && t>=28 && /(羽绒|棉服|毛衣|呢|加绒)/.test(it.name)) return false;
+    if(occ==='运动' && cat==='shoes' && !/(运动|跑|瑜伽|休闲)/.test(it.name)) return false;
+    if(occ==='正式' && cat==='top' && /(卫衣|T恤|休闲)/.test(it.name)) return false;
+    if(occ==='约会' && /(西装|正装|西裤)/.test(it.name)) return false;
+    return true;
+  };
+  const byCat={}; WCATS.forEach(c=>byCat[c.key]=w.items.filter(x=>x.cat===c.key && keyFilter(c.key,x)));
+  WCATS.forEach(c=>{ if(!byCat[c.key].length) byCat[c.key]=w.items.filter(x=>x.cat===c.key); });
   const rnd=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
-  const top=pick('top'), bottom=pick('bottom'), shoes=pick('shoes');
-  wdCurRec={ top:top.length?rnd(top).id:null, bottom:bottom.length?rnd(bottom).id:null, shoes:shoes.length?rnd(shoes).id:null, t:t, s:curS };
+  const must=['top','bottom','shoes']; must.forEach(k=>{ if(!byCat[k].length) byCat[k]=w.items.filter(x=>x.cat===k); });
+  const top=rnd(byCat.top), bottom=rnd(byCat.bottom), shoes=rnd(byCat.shoes), coat=rnd(byCat.coat), acc=rnd(byCat.acc);
+  const candidates=[];
+  for(let i=0;i<8;i++){
+    const ctop=rnd(byCat.top), cbottom=rnd(byCat.bottom), cshoes=rnd(byCat.shoes), ccoat=rnd(byCat.coat), cacc=rnd(byCat.acc);
+    let harmony=0, n=0;
+    const arr=[ctop,cbottom,cshoes,ccoat,cacc].filter(Boolean);
+    for(let a=0;a<arr.length;a++) for(let b=a+1;b<arr.length;b++){ harmony+=wdColorHarmony(arr[a].color,arr[b].color); n++; }
+    if(n) harmony/=n; else harmony=0.5;
+    let score=harmony;
+    if(occ==='通勤' && ctop && /(衬衫|西装|针织|西)/.test(ctop.name)) score+=0.15;
+    if(occ==='约会' && cbottom && /(裙|裙裤)/.test(cbottom.name)) score+=0.1;
+    if(occ==='运动' && top && /(运动|速干)/.test(top.name)) score+=0.15;
+    if(t<12 && coat) score+=0.15; else if(t>=20 && coat) score-=0.1;
+    candidates.push({top:ctop,bottom:cbottom,shoes:cshoes,coat:ccoat,acc:cacc,score:score});
+  }
+  candidates.sort((a,b)=>b.score-a.score);
+  const best=candidates[0];
+  wdCurRec={ top:best.top?best.top.id:null, bottom:best.bottom?best.bottom.id:null, shoes:best.shoes?best.shoes.id:null, coat:best.coat?best.coat.id:null, acc:best.acc?best.acc.id:null, t:t, s:curS, occ:occ };
 }
 function wardRecRender(){
   if(!wdCurRec) wardComputeRec();
   const w=wardData(); const get=id=>w.items.find(x=>x.id===id);
-  const top=get(wdCurRec.top), bottom=get(wdCurRec.bottom), shoes=get(wdCurRec.shoes);
+  const top=get(wdCurRec.top), bottom=get(wdCurRec.bottom), shoes=get(wdCurRec.shoes), coat=get(wdCurRec.coat), acc=get(wdCurRec.acc);
   if(!top&&!bottom&&!shoes) return '<div class="u-empty"><div class="e">👗</div><div class="t">先添加几件衣物，我来帮你搭配</div></div>';
   const cell=it=>it?`<div class="wd-rec-cell" onclick="openImagePreview(${it.img?JSON.stringify([it.img]).replace(/"/g,'&quot;'):'[]'},0)">${it.img?`<img src="${it.img}">`:'<div class="wd-rec-ph">'+catIcon(it.cat)+'</div>'}<div class="wd-rec-n">${esc(it.name)}</div></div>`:'<div class="wd-rec-cell"><div class="wd-rec-ph">＋</div></div>';
-  const reason='今天 '+wdCurRec.t+'°C，推荐 '+(top?esc(top.name):'上装')+' + '+(bottom?esc(bottom.name):'下装')+(wdCurRec.t<15?'，注意保暖层次，叠穿更暖':(wdCurRec.t>=28?'，轻薄透气为主，备件薄外套':(wdCurRec.t>=24?'，舒适百搭，空调房可备薄外套':'，长袖刚好，体感舒适')))+'。';
+  const occBtns=WD_OCCASIONS.map(o=>`<button class="chip ${wdOccasion===o?'on':''}" onclick="wdOccasion='${o}';wdCurRec=null;setRoute('wardrobe')">${o}</button>`).join('');
+  const reason='今天 '+wdCurRec.t+'°C · '+wdCurRec.occ+'场合，推荐 '+(top?esc(top.name):'上装')+' + '+(bottom?esc(bottom.name):'下装')+(coat?' + '+esc(coat.name):'')+(acc?' · 点缀 '+esc(acc.name):'')+(wdCurRec.t<15?'，注意保暖层次':(wdCurRec.t>=28?'，轻薄透气为主':''))+'。';
   return `<div class="u-card wd-rec">
     <div class="wd-rec-h">🌤️ 今日穿搭推荐</div>
-    <div class="wd-rec-row">${cell(top)}<div class="wd-plus">+</div>${cell(bottom)}<div class="wd-plus">+</div>${cell(shoes)}</div>
+    <div style="margin:8px 0 4px"><span style="font-size:12px;color:var(--ink-soft)">场合：</span>${occBtns}</div>
+    <div class="wd-rec-row">${cell(top)}<div class="wd-plus">+</div>${cell(bottom)}${coat?'<div class="wd-plus">+</div>'+cell(coat):''}${acc?'<div class="wd-plus">+</div>'+cell(acc):''}</div>
     <div class="wd-rec-reason">${reason}</div>
     <div class="wd-rec-actions">
       <button class="btn btn-soft" onclick="wardComputeRec();setRoute('wardrobe')">🎲 换一套</button>
       <button class="btn btn-pink" onclick="wdWearToday()">✅ 就穿这套</button>
+      <button class="btn btn-soft" onclick="wdAddFav()" title="收藏这套搭配">❤️ 收藏</button>
     </div>
   </div>`;
 }
-function wdWearToday(){ if(!wdCurRec) wardComputeRec(); const ids=[wdCurRec.top,wdCurRec.bottom,wdCurRec.shoes].filter(Boolean); if(!ids.length){ alert('先有一套搭配哦～'); return; } const w=wardData(); w.outfits=w.outfits||[]; w.outfits.push({date:keyDate, items:ids}); w.worn={top:wdCurRec.top||null,bottom:wdCurRec.bottom||null,shoes:wdCurRec.shoes||null}; ids.forEach(id=>{ const it=w.items.find(x=>x.id===id); if(it) it.lastWorn=keyDate; }); DB.set('wardrobe',w); setRoute('wardrobe'); }
+function wdWearToday(){ if(!wdCurRec) wardComputeRec(); const ids=[wdCurRec.top,wdCurRec.bottom,wdCurRec.shoes,wdCurRec.coat,wdCurRec.acc].filter(Boolean); if(!ids.length){ alert('先有一套搭配哦～'); return; } const w=wardData(); w.outfits=w.outfits||[]; w.outfits.push({date:keyDate, items:ids}); w.worn={top:wdCurRec.top||null,bottom:wdCurRec.bottom||null,shoes:wdCurRec.shoes||null}; ids.forEach(id=>{ const it=w.items.find(x=>x.id===id); if(it) it.lastWorn=keyDate; }); DB.set('wardrobe',w); setRoute('wardrobe'); }
 function wardHistRender(){ const w=wardData(); const hs=(w.outfits||[]).slice().reverse(); if(!hs.length) return '<div class="u-empty"><div class="e">📅</div><div class="t">还没有穿搭记录，点「就穿这套」试试</div></div>'; return '<div class="wd-hist">'+hs.map(h=>{ const items=h.items.map(id=>w.items.find(x=>x.id===id)).filter(Boolean); const names=items.map(x=>esc(x.name)).join(' + '); return `<div class="wd-hist-item"><div class="wd-hist-date">${h.date}</div><div class="wd-hist-names">${names}</div></div>`; }).join('')+'</div>'; }
 function wardRepeatWarn(){ const w=wardData(); const hs=(w.outfits||[]); if(hs.length<3) return ''; const last3=hs.slice(-3); const cnt={}; last3.forEach(h=>h.items.forEach(id=>cnt[id]=(cnt[id]||0)+1)); const repeat=Object.keys(cnt).filter(id=>cnt[id]>=3); if(!repeat.length) return ''; const names=repeat.map(id=>{const it=w.items.find(x=>x.id===id);return it?it.name:id;}); return '<div class="wd-warn">💡 '+names.join('、')+' 连续穿了几天啦，换一件吧～</div>'; }
 function wdStats(){ const w=wardData(); const items=w.items||[]; const top=items.filter(x=>x.cat==='top').length, bottom=items.filter(x=>x.cat==='bottom').length, shoes=items.filter(x=>x.cat==='shoes').length; const oldCount=items.filter(x=>!x.lastWorn||wdDaysAgo(x.lastWorn)>60).length; return `<div class="wd-stats" onclick="wdShowOld=!wdShowOld;setRoute('wardrobe')">共 ${items.length} 件・上装 ${top} / 下装 ${bottom} / 鞋 ${shoes}・<span class="wd-old">最久没穿 ${oldCount} 件</span></div>`; }
@@ -3548,6 +3651,39 @@ function wardClosetRender(){
   const grid=items.length?`<div class="wd-grid3">${items.map(x=>wardCell(x)).join('')}</div>`:'<div class="u-empty"><div class="e">👗</div><div class="t">这里还没有衣物</div></div>';
   return wdStats()+`<div class="chips" style="margin:8px 0">${catTabs}</div>`+grid+wardAddForm();
 }
+function wardFavTab(){
+  const fs=wdFavs(); if(!fs.length) return '<div class="u-empty"><div class="e">❤️</div><div class="t">还没有收藏的搭配，去「今日搭配」收藏一套吧</div></div>';
+  return '<div class="wd-hist">'+fs.map(f=>{
+    const w=wardData();
+    const items=(f.items||[]).map(id=>w.items.find(x=>x.id===id)).filter(Boolean);
+    const thumb=items.map(it=>it.img?`<img src="${it.img}" style="width:36px;height:36px;border-radius:6px;object-fit:cover">`:`<span style="font-size:22px">${catIcon(it.cat)}</span>`).join('');
+    return `<div class="wd-hist-item" style="align-items:center">
+      <div style="display:flex;gap:4px;flex:none">${thumb}</div>
+      <div style="flex:1;min-width:0;margin-left:8px">
+        <div class="wd-hist-names" style="margin:0">${esc(f.name)}</div>
+        <div style="font-size:11px;color:var(--ink-soft)">${f.occasion||''} · ${f.date}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-soft" style="padding:4px 10px;font-size:12px" onclick="wdApplyFav(${f.id})">穿上</button>
+        <button class="btn" style="padding:4px 10px;font-size:12px;background:#fff0f3;color:var(--kitty-red)" onclick="wdDelFav(${f.id})">删除</button>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+function wdCalendarTab(){
+  const w=wardData(); const hs=(w.outfits||[]).slice().reverse();
+  if(!hs.length) return '<div class="u-empty"><div class="e">📅</div><div class="t">还没有穿搭记录</div></div>';
+  const days=['日','一','二','三','四','五','六'];
+  const groups={}; hs.forEach(h=>{ groups[h.date]=groups[h.date]||[]; groups[h.date].push(h); });
+  return '<div class="wd-cal">'+Object.keys(groups).sort().reverse().map(d=>{
+    const date=new Date(d+'T00:00:00'); const label=(date.getMonth()+1)+'/'+date.getDate()+' 周'+days[date.getDay()];
+    const outfits=groups[d].map(o=>{
+      const names=o.items.map(id=>{const it=w.items.find(x=>x.id===id);return it?it.name:''}).filter(Boolean).join(' + ');
+      return `<div class="wd-cal-item">${names}</div>`;
+    }).join('');
+    return `<div class="wd-cal-day"><div class="wd-cal-date">${label}</div>${outfits}</div>`;
+  }).join('')+'</div>';
+}
 function wardOutfitTab(){ return wardRecRender()+'<div class="wd-sub">穿搭历史</div>'+wardRepeatWarn()+wardHistRender(); }
 function viewWardrobe(){
   const lw=DB.get("wardWeather",null); const city=DB.get("wardCity","");
@@ -3561,8 +3697,8 @@ function viewWardrobe(){
       </div>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6a5a60;margin:8px 0 4px"><input type="checkbox" ${wdWeatherFilter?'checked':''} onchange="wdWeatherFilter=this.checked;setRoute('wardrobe')"> 随机时按天气过滤</label>
     </div>
-    <div class="wd-tabs"><button class="wd-tab ${wdTab==='outfit'?'on':''}" onclick="wdTab='outfit';setRoute('wardrobe')">🎀 今日搭配</button><button class="wd-tab ${wdTab==='closet'?'on':''}" onclick="wdTab='closet';setRoute('wardrobe')">👚 我的衣橱</button></div>
-    ${wdTab==='outfit'?wardOutfitTab():wardClosetRender()}
+    <div class="wd-tabs"><button class="wd-tab ${wdTab==='outfit'?'on':''}" onclick="wdTab='outfit';setRoute('wardrobe')">🎀 今日搭配</button><button class="wd-tab ${wdTab==='closet'?'on':''}" onclick="wdTab='closet';setRoute('wardrobe')">👚 我的衣橱</button><button class="wd-tab ${wdTab==='fav'?'on':''}" onclick="wdTab='fav';setRoute('wardrobe')">❤️ 我的搭配</button><button class="wd-tab ${wdTab==='cal'?'on':''}" onclick="wdTab='cal';setRoute('wardrobe')">📅 日历</button></div>
+    ${wdTab==='outfit'?wardOutfitTab():(wdTab==='fav'?wardFavTab():(wdTab==='cal'?wdCalendarTab():wardClosetRender()))}
   `;
 }
 const WCODE={0:["晴",""],1:["大致晴朗",""],2:["局部多云",""],3:["阴",""],45:["雾",""],48:["雾凇",""],51:["毛毛雨",""],53:["小雨",""],55:["中雨",""],61:["小雨",""],63:["中雨",""],65:["大雨",""],71:["小雪",""],73:["中雪",""],75:["大雪",""],80:["阵雨",""],81:["阵雨",""],82:["强阵雨",""],85:["阵雪",""],95:["雷阵雨",""],96:["雷阵雨伴冰雹",""]};
@@ -3596,7 +3732,7 @@ async function fetchWeather(){
     document.querySelector('.weather-top').innerHTML=renderWeatherBox(cname,temp,code);
   }catch(e){ alert('天气获取失败，请检查网络后重试'); }
 }
-const WCATS=[{key:"top",label:"上装",ic:"👚"},{key:"bottom",label:"下装",ic:"👖"},{key:"shoes",label:"鞋子",ic:"👟"}];
+const WCATS=[{key:"top",label:"上装",ic:"👚"},{key:"bottom",label:"下装",ic:"👖"},{key:"shoes",label:"鞋子",ic:"👟"},{key:"coat",label:"外套",ic:"🧥"},{key:"acc",label:"配饰",ic:"🎀"}];
 let wardSeason='全部';
 function wardData(){ return DB.get("wardrobe",DEF.wardrobe); }
 function catIcon(cat){return cat==='top'?'👚':cat==='bottom'?'👖':'👟';}

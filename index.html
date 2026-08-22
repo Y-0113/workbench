@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20250822c';
+  var WB_VER='20250822d';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1346,7 +1346,7 @@ const MODULES=[
 ];
 
 const DEF={
-  skin:{tab:'today',checkins:{},products:[],logs:[],reminders:{nightOn:false,nightTime:'22:00',maskPeriod:0,expireOn:true},aiSeed:0},
+  skin:{tab:'today',checkins:{},used:{},notes:{},products:[],logs:[],reminders:{nightOn:false,nightTime:'22:00',maskPeriod:0,expireOn:true},aiSeed:0},
   plan:["喝够 8 杯水 💧","通勤听一集播客 🎧","背 20 个单词 📚","完成工作最重要 3 件事 ✅","运动 30 分钟 🏃","23:30 前睡觉 😴"],
   fitnessHabits:[
     {t:"帕梅拉 15min 肩颈放松",v:"",part:"肩颈"},

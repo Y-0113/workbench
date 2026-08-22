@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20250822f';
+  var WB_VER='20260821a';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1089,6 +1089,106 @@ input[type=color]{width:52px;height:38px;border:1px solid var(--line);border-rad
 .xy-lock-thumb .xy-lock-name{position:absolute;left:0;right:0;bottom:0;font-size:9px;color:#fff;background:rgba(0,0,0,.4);padding:2px 0;text-align:center;}
 @media(max-width:600px){.xy-preset-grid{grid-template-columns:repeat(3,1fr);}}
 </style>
+<style>
+:root{ --u-pink:#E88B9E; --u-shadow:0 2px 8px rgba(0,0,0,.04); }
+.u-card{ border-radius:16px; padding:16px; background:var(--card); box-shadow:var(--u-shadow); }
+.u-empty{ text-align:center; padding:36px 20px; color:#b7a7ad; }
+.u-empty .e{ font-size:38px; }
+.u-empty .t{ margin-top:10px; font-size:13px; }
+.u-ai{ background:linear-gradient(135deg,#fff5f7,#ffe9ef); border:1px solid var(--kitty-pink); border-radius:14px; padding:12px 14px; margin-top:10px; }
+.u-ai .h{ font-weight:800; color:var(--kitty-red); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; font-size:13px; }
+.u-ai .h button{ background:#fff; border:1px solid var(--kitty-pink); color:var(--kitty-red); border-radius:10px; padding:3px 10px; font-size:12px; cursor:pointer; font-family:inherit; }
+.u-ai .b{ font-size:13px; line-height:1.6; color:#5a4a50; }
+/* 心情日记 */
+.mood-tabs{ display:flex; gap:8px; margin:10px 0; }
+.mood-tab{ flex:1; padding:10px; border-radius:14px; border:1px solid var(--line); background:#fff; font-size:14px; font-weight:700; color:#9a8a90; cursor:pointer; font-family:inherit; }
+.mood-tab.on{ background:linear-gradient(135deg,var(--u-pink),var(--kitty-red)); color:#fff; border:none; }
+.mood-picker{ display:flex; flex-wrap:wrap; gap:8px; }
+.mood-btn{ width:62px; height:62px; border-radius:14px; border:1px solid var(--line); background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:22px; cursor:pointer; font-family:inherit; color:#5a4a50; }
+.mood-btn span{ font-size:11px; margin-top:2px; }
+.mood-btn.on{ border-color:var(--u-pink); background:#fff0f3; box-shadow:0 0 0 2px var(--u-pink) inset; }
+.mood-more{ width:62px; height:62px; border-radius:14px; border:1px dashed var(--kitty-pink); background:#fff; font-size:13px; color:var(--u-pink); cursor:pointer; font-family:inherit; }
+.mood-filters{ display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 8px; }
+.mood-trend{ margin:12px 0; }
+.mood-trend-h{ font-weight:800; color:var(--kitty-red); margin-bottom:6px; font-size:14px; }
+.mood-trend-h2{ font-weight:700; font-size:13px; color:#6a5a60; margin-bottom:6px; }
+.mood-line{ width:100%; height:auto; }
+.mood-ring-wrap{ flex:1; }
+.mood-ring{ position:relative; width:96px; height:96px; border-radius:50%; margin:4px auto 0; background:#eee; }
+.ring-seg{ position:absolute; inset:0; border-radius:50%; }
+.mood-ring-c{ position:absolute; inset:26px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:17px; color:var(--kitty-red); line-height:1.1; }
+.mood-ring-c span{ font-size:10px; color:#9a8a90; font-weight:600; }
+.mood-ring-empty{ text-align:center; color:#b0a0a6; font-size:12px; padding:30px 0; }
+.mood-summary{ margin-top:10px; background:#fff7f9; border:1px solid var(--kitty-pink-soft); border-radius:12px; padding:10px 12px; font-size:13px; color:#6a4a54; }
+.mood-entry{ display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line); align-items:flex-start; }
+.me-emoji{ font-size:24px; flex:none; }
+.me-body{ flex:1; min-width:0; }
+.me-meta{ font-size:12px; color:var(--ink-soft); }
+.me-text{ font-size:14px; margin-top:4px; }
+.mood-tags{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.mood-tags .mt{ font-size:11px; background:var(--kitty-pink-soft); color:var(--kitty-red-dark); border-radius:8px; padding:2px 8px; }
+</style>
+<style>
+.kaka-grid{ display:flex; flex-direction:column; gap:10px; }
+.kaka-remind{ display:flex; align-items:center; gap:10px; border-radius:14px; padding:12px; background:#fff; box-shadow:var(--u-shadow); border:1px solid var(--line); position:relative; cursor:pointer; }
+.kaka-remind.gray{ border-left:4px solid #cfcfcf; }
+.kaka-remind.orange{ border-left:4px solid #f5a623; background:#fff8ef; }
+.kaka-remind.red{ border-left:4px solid var(--kitty-red); background:#fff0f2; }
+.kaka-remind .kr-ic{ font-size:24px; flex:none; }
+.kaka-remind .kr-body{ flex:1; min-width:0; }
+.kaka-remind .kr-t{ font-weight:700; font-size:13px; color:#5a4a50; }
+.kaka-remind .kr-d{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+.kaka-remind .kr-tip{ font-size:12px; color:var(--kitty-red); font-weight:700; margin-top:2px; }
+.kaka-remind .kr-done{ position:absolute; right:10px; bottom:10px; background:linear-gradient(135deg,var(--kitty-pink),var(--kitty-red)); color:#fff; border:none; border-radius:10px; padding:4px 10px; font-size:11px; cursor:pointer; font-family:inherit; }
+.kaka-quick{ display:flex; flex-direction:column; }
+.kaka-mood-row{ display:flex; align-items:center; gap:6px; padding:10px 12px; border-radius:12px; background:#fff; box-shadow:var(--u-shadow); font-size:14px; cursor:pointer; }
+.kaka-mood-row .arr{ margin-left:auto; color:var(--ink-soft); }
+.hl-toggle{ float:right; font-size:12px; color:var(--u-pink); cursor:pointer; font-weight:600; }
+.kaka-hl{ margin-top:8px; }
+.kaka-hl-item{ display:flex; justify-content:space-between; padding:8px 12px; border-radius:10px; background:#fff; box-shadow:var(--u-shadow); margin-bottom:6px; font-size:13px; }
+.kaka-hl-item b{ color:var(--kitty-red); }
+</style>
+<style>
+.wd-tabs{ display:flex; gap:8px; margin:10px 0; }
+.wd-tab{ flex:1; padding:10px; border-radius:14px; border:1px solid var(--line); background:#fff; font-size:14px; font-weight:700; color:#9a8a90; cursor:pointer; font-family:inherit; }
+.wd-tab.on{ background:linear-gradient(135deg,var(--u-pink),var(--kitty-red)); color:#fff; border:none; }
+.wd-grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.wd-cell{ position:relative; background:#fff; border-radius:14px; box-shadow:var(--u-shadow); overflow:hidden; cursor:pointer; }
+.wd-cell.on{ box-shadow:0 0 0 2px var(--u-pink) inset; }
+.wd-cell img{ width:100%; aspect-ratio:1/1; object-fit:cover; display:block; }
+.wd-cell .wd-ph{ width:100%; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-size:30px; background:#faf3f5; }
+.wd-cell-n{ font-size:12px; padding:4px 6px 0; font-weight:600; color:#5a4a50; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wd-cell-c{ font-size:11px; color:var(--ink-soft); padding:0 6px 6px; }
+.color-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.color-sw{ width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px var(--line); cursor:pointer; }
+.color-sw.on{ box-shadow:0 0 0 2px var(--u-pink); }
+.season-row{ display:flex; flex-wrap:wrap; gap:6px; }
+.season-chip{ padding:5px 12px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:12px; color:#9a8a90; cursor:pointer; font-family:inherit; }
+.season-chip.on{ background:linear-gradient(135deg,var(--u-pink),var(--kitty-red)); color:#fff; border:none; }
+.wd-add .wd-field{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.wd-fl{ font-size:13px; color:#6a5a60; width:42px; flex:none; }
+.wd-img-up{ display:inline-flex; align-items:center; gap:6px; border:1px dashed var(--kitty-pink); border-radius:12px; padding:8px 12px; color:var(--u-pink); font-size:13px; cursor:pointer; }
+.wd-img-up input{ display:none; }
+.wd-img-prev{ width:48px; height:48px; border-radius:8px; object-fit:cover; margin-left:8px; vertical-align:middle; }
+.wd-rec{ margin-top:4px; }
+.wd-rec-h{ font-weight:800; color:var(--kitty-red); margin-bottom:10px; font-size:14px; }
+.wd-rec-row{ display:flex; align-items:center; justify-content:center; gap:6px; }
+.wd-rec-cell{ width:72px; text-align:center; }
+.wd-rec-cell img{ width:72px; height:72px; border-radius:14px; object-fit:cover; }
+.wd-rec-ph{ width:72px; height:72px; border-radius:14px; background:#faf3f5; display:flex; align-items:center; justify-content:center; font-size:30px; }
+.wd-rec-n{ font-size:11px; margin-top:4px; color:#5a4a50; }
+.wd-plus{ font-size:22px; color:var(--u-pink); font-weight:800; }
+.wd-rec-reason{ font-size:13px; color:#6a5a60; margin:10px 0; line-height:1.5; }
+.wd-rec-actions{ display:flex; gap:8px; }
+.wd-rec-actions .btn{ flex:1; }
+.wd-sub{ font-weight:800; color:var(--kitty-red); margin:14px 0 8px; font-size:14px; }
+.wd-stats{ font-size:12px; color:var(--ink-soft); background:#fff; border-radius:12px; padding:10px 12px; box-shadow:var(--u-shadow); cursor:pointer; }
+.wd-stats .wd-old{ color:var(--u-pink); font-weight:700; }
+.wd-hist{ display:flex; flex-direction:column; gap:6px; }
+.wd-hist-item{ background:#fff; border-radius:10px; padding:8px 12px; box-shadow:var(--u-shadow); display:flex; justify-content:space-between; font-size:13px; }
+.wd-hist-date{ color:var(--ink-soft); }
+.wd-warn{ background:#fff7e6; border:1px solid #ffd591; color:#b26a00; border-radius:12px; padding:8px 12px; font-size:13px; margin-bottom:8px; }
+</style>
 </head>
 <body>
 <div id="xyBg"></div>
@@ -1390,7 +1490,7 @@ const DEF={
       {id:3,name:"黑色西装外套",cat:"top",color:"黑",season:"春秋"},{id:4,name:"直筒牛仔裤",cat:"bottom",color:"蓝",season:"四季"},
       {id:5,name:"灰色半身裙",cat:"bottom",color:"灰",season:"四季"},{id:6,name:"小白鞋",cat:"shoes",color:"白",season:"四季"},
       {id:7,name:"乐福鞋",cat:"shoes",color:"棕",season:"春秋"},
-    ], worn:{top:null,bottom:null,shoes:null}
+    ], worn:{top:null,bottom:null,shoes:null}, outfits:[]
   },
   makeup:[{t:"通勤伪素颜：隔离+眉粉+豆沙色口红",cat:"妆容"},{t:"元气约会妆：橘调腮红+卷翘睫毛",cat:"妆容"},{t:"清透运动妆：防晒+定妆+润唇",cat:"妆容"},{t:"消肿急救：冰勺敷眼+高光提亮",cat:"妆容"},{t:"氛围感唇妆：咬唇画法",cat:"妆容"},{t:"锁骨发：显脸小又好打理",cat:"发型"},{t:"高颅顶披发：氛围感拉满",cat:"发型"},{t:"低丸子头：通勤清爽",cat:"发型"}],
   recipe:[
@@ -1410,6 +1510,8 @@ const DEF={
     bath:[], groom:[], deworm:[], moments:[],
     mood:"开心", moodLog:[],
     homeDate:{y:"",m:"",d:""},
+    period:{bath:15,groom:45,deworm:30},
+    outfits:[],
   },
   short:[
     {t:"真正重要的东西，用眼睛是看不见的",author:"安托万·德·圣-埃克苏佩里",book:"小王子",body:"只有用心才能看清事物本质。真正重要的东西，用眼睛是看不见的。你为你的玫瑰花费的时间，使得你的玫瑰如此重要。"},
@@ -2440,7 +2542,7 @@ function goodsRows(list){ return list.length?list.map(x=>{
   <div class="g-top">${x.fromSkin?'<span title="来自护肤日记" style="cursor:pointer" onclick="setRoute(\'skin\');event.stopPropagation()">🧴</span> ':''}<b>${esc(x.name)}</b><span class="tag">${esc(x.cat||'')}</span><span class="stars">${'★'.repeat(x.star)}${'☆'.repeat(5-x.star)}</span>${x.repurchase?'<span class="tag" style="background:#e0f7d6;color:#5a9e3a">会回购</span>':''}<button class="del" onclick="delGoods(${x.id})" style="background:none;border:none;color:#d4b2bc;font-size:18px;cursor:pointer">×</button></div>
   <div class="g-meta">¥${x.price||'?'} · ${x.type}</div>
   ${x.pros?`<div class="g-p">👍 ${esc(x.pros)}</div>`:''}${x.cons?`<div class="g-c">👎 ${esc(x.cons)}</div>`:''}
-</div></div>`).join(''):'<p style="color:var(--ink-soft)">还没有记录</p>'; }
+</div></div>`}).join(''):'<p style="color:var(--ink-soft)">还没有记录</p>'; }
 function addGoods(){ const name=document.getElementById('g_name').value.trim(); if(!name)return; const items=goodsLog(); items.push({id:Date.now(),name,cat:document.getElementById('g_cat').value.trim(),price:+document.getElementById('g_price').value||0,star:+document.getElementById('g_star').value,type:document.getElementById('g_type').value,pros:document.getElementById('g_pros').value.trim(),cons:document.getElementById('g_cons').value.trim(),repurchase:document.getElementById('g_rep').checked,pics:_goodsTmpPics.slice(),created:keyDate}); _goodsTmpPics=[]; setGoodsLog(items); setRoute('goods'); }
 function delGoods(id){
   let items=goodsLog(); const rec=items.find(x=>x.id===id);
@@ -3298,19 +3400,85 @@ function addRecipe(){
 function delRecipe(i){ let a=DB.get("recipe",DEF.recipe).map(normalizeRecipe); a.splice(i,1); DB.set("recipe",a); document.getElementById('recipeList').innerHTML=a.map((x,j)=>recipeCard(x,j)).join(''); }
 
 /* ===== 电子衣橱 ===== */
+let wdTab='outfit', wdCat='全部', wdWeatherFilter=false, wdCurRec=null, wdShowOld=false;
+let wardAddName='', wardAddColor='', wardAddSeason=[], wardAddImg='';
+function wardSeasonNow(){ const m=new Date().getMonth()+1; return (m>=3&&m<=5)?'春':(m>=6&&m<=8)?'夏':(m>=9&&m<=11)?'秋':'冬'; }
+function wdDaysAgo(d){ if(!d) return 9999; const a=new Date(d+'T00:00:00'); const b=new Date(keyDate+'T00:00:00'); return Math.round((b-a)/86400000); }
+function colorHex(c){ const m={'白':'#ffffff','黑':'#333333','灰':'#bdbdbd','粉':'#ffb3c7','蓝':'#7fb3e8','绿':'#9bd0a0','棕':'#b08968','其他':'#e0c3a0'}; return m[c]||'#dddddd'; }
+function wardComputeRec(){ const w=wardData(); const tw=DB.get('wardWeather',null); const t=tw?tw.temp:20; const curS=wardSeasonNow();
+  const pick=cat=>{ let base=w.items.filter(x=>x.cat===cat && ((x.season||'').split(',').indexOf(curS)>=0||(x.season||'').indexOf('四季')>=0)); if(wdWeatherFilter && t<12) base=base.filter(x=>!/(短袖|吊带|无袖|裙)/.test(x.name)); if(!base.length) base=w.items.filter(x=>x.cat===cat); return base; };
+  const rnd=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
+  const top=pick('top'), bottom=pick('bottom'), shoes=pick('shoes');
+  wdCurRec={ top:top.length?rnd(top).id:null, bottom:bottom.length?rnd(bottom).id:null, shoes:shoes.length?rnd(shoes).id:null, t:t, s:curS };
+}
+function wardRecRender(){
+  if(!wdCurRec) wardComputeRec();
+  const w=wardData(); const get=id=>w.items.find(x=>x.id===id);
+  const top=get(wdCurRec.top), bottom=get(wdCurRec.bottom), shoes=get(wdCurRec.shoes);
+  if(!top&&!bottom&&!shoes) return '<div class="u-empty"><div class="e">👗</div><div class="t">先添加几件衣物，我来帮你搭配</div></div>';
+  const cell=it=>it?`<div class="wd-rec-cell" onclick="openImagePreview([this.querySelector('img').src],0)">${it.img?`<img src="${it.img}">`:'<div class="wd-rec-ph">'+catIcon(it.cat)+'</div>'}<div class="wd-rec-n">${esc(it.name)}</div></div>`:'<div class="wd-rec-cell"><div class="wd-rec-ph">＋</div></div>';
+  const reason='今天 '+wdCurRec.t+'°C，推荐 '+(top?esc(top.name):'上装')+' + '+(bottom?esc(bottom.name):'下装')+(wdCurRec.t<15?'，注意保暖层次，叠穿更暖':(wdCurRec.t>=28?'，轻薄透气为主，备件薄外套':(wdCurRec.t>=24?'，舒适百搭，空调房可备薄外套':'，长袖刚好，体感舒适')))+'。';
+  return `<div class="u-card wd-rec">
+    <div class="wd-rec-h">🌤️ 今日穿搭推荐</div>
+    <div class="wd-rec-row">${cell(top)}<div class="wd-plus">+</div>${cell(bottom)}<div class="wd-plus">+</div>${cell(shoes)}</div>
+    <div class="wd-rec-reason">${reason}</div>
+    <div class="wd-rec-actions">
+      <button class="btn btn-soft" onclick="wardComputeRec();setRoute('wardrobe')">🎲 换一套</button>
+      <button class="btn btn-pink" onclick="wdWearToday()">✅ 就穿这套</button>
+    </div>
+  </div>`;
+}
+function wdWearToday(){ if(!wdCurRec) wardComputeRec(); const ids=[wdCurRec.top,wdCurRec.bottom,wdCurRec.shoes].filter(Boolean); if(!ids.length){ alert('先有一套搭配哦～'); return; } const w=wardData(); w.outfits=w.outfits||[]; w.outfits.push({date:keyDate, items:ids}); w.worn={top:wdCurRec.top||null,bottom:wdCurRec.bottom||null,shoes:wdCurRec.shoes||null}; ids.forEach(id=>{ const it=w.items.find(x=>x.id===id); if(it) it.lastWorn=keyDate; }); DB.set('wardrobe',w); setRoute('wardrobe'); }
+function wardHistRender(){ const w=wardData(); const hs=(w.outfits||[]).slice().reverse(); if(!hs.length) return '<div class="u-empty"><div class="e">📅</div><div class="t">还没有穿搭记录，点「就穿这套」试试</div></div>'; return '<div class="wd-hist">'+hs.map(h=>{ const items=h.items.map(id=>w.items.find(x=>x.id===id)).filter(Boolean); const names=items.map(x=>esc(x.name)).join(' + '); return `<div class="wd-hist-item"><div class="wd-hist-date">${h.date}</div><div class="wd-hist-names">${names}</div></div>`; }).join('')+'</div>'; }
+function wardRepeatWarn(){ const w=wardData(); const hs=(w.outfits||[]); if(hs.length<3) return ''; const last3=hs.slice(-3); const cnt={}; last3.forEach(h=>h.items.forEach(id=>cnt[id]=(cnt[id]||0)+1)); const repeat=Object.keys(cnt).filter(id=>cnt[id]>=3); if(!repeat.length) return ''; const names=repeat.map(id=>{const it=w.items.find(x=>x.id===id);return it?it.name:id;}); return '<div class="wd-warn">💡 '+names.join('、')+' 连续穿了几天啦，换一件吧～</div>'; }
+function wdStats(){ const w=wardData(); const items=w.items||[]; const top=items.filter(x=>x.cat==='top').length, bottom=items.filter(x=>x.cat==='bottom').length, shoes=items.filter(x=>x.cat==='shoes').length; const oldCount=items.filter(x=>!x.lastWorn||wdDaysAgo(x.lastWorn)>60).length; return `<div class="wd-stats" onclick="wdShowOld=!wdShowOld;setRoute('wardrobe')">共 ${items.length} 件・上装 ${top} / 下装 ${bottom} / 鞋 ${shoes}・<span class="wd-old">最久没穿 ${oldCount} 件</span></div>`; }
+function wardCell(x){ const on=(wardData().worn&&wardData().worn[x.cat]===x.id); return `<div class="wd-cell ${on?'on':''}" onclick="wardSelect('${x.cat}',${x.id})">
+  ${x.img?`<img src="${x.img}" onclick="event.stopPropagation();openImagePreview([this.src],0)">`:`<div class="wd-ph">${catIcon(x.cat)}</div>`}
+  <div class="wd-cell-n">${esc(x.name)}</div>
+  <div class="wd-cell-c">${esc(x.color||'')}</div>
+  <button class="del" onclick="event.stopPropagation();wardDel(${x.id})" style="position:absolute;top:4px;right:4px;background:none;border:none;color:#d4b2bc;font-size:16px;cursor:pointer">×</button>
+</div>`; }
+function wardAddForm(){
+  const colors=['白','黑','灰','粉','蓝','绿','棕','其他'];
+  const colorBtns=colors.map(c=>`<button type="button" class="color-sw ${wardAddColor===c?'on':''}" style="background:${colorHex(c)}" title="${c}" onclick="wardAddColor='${c}';setRoute('wardrobe')"></button>`).join('');
+  const seasons=['春','夏','秋','冬','四季'];
+  const seasonBtns=seasons.map(s=>`<button type="button" class="season-chip ${wardAddSeason.indexOf(s)>=0?'on':''}" onclick="wardToggleSeason('${s}')">${s}</button>`).join('');
+  return `<div class="sec-title" style="margin-top:14px">添加我的衣物</div>
+    <div class="u-card wd-add">
+      <input id="wd_name" placeholder="例如：米色风衣" value="${wardAddName}" oninput="wardAddName=this.value" style="width:100%;margin-bottom:8px">
+      <div class="wd-field"><span class="wd-fl">颜色</span><div class="color-row">${colorBtns}</div></div>
+      <div class="wd-field"><span class="wd-fl">季节</span><div class="season-row">${seasonBtns}</div></div>
+      <div class="wd-field"><span class="wd-fl">分类</span><select id="wd_cat">${WCATS.map(c=>`<option value="${c.key}">${c.label}</option>`).join('')}</select></div>
+      <div class="wd-field"><span class="wd-fl">实物图</span><label class="wd-img-up"><input type="file" id="wd_img" accept="image/*" onchange="wardAddImgPreview(this)"><span>📷 添加产品图</span></label>${wardAddImg?`<img class="wd-img-prev" src="${wardAddImg}">`:''}</div>
+      <button class="btn btn-pink" style="width:100%" onclick="wardAdd()">添加</button>
+    </div>`;
+}
+function wardToggleSeason(s){ if(wardAddSeason.indexOf(s)>=0) wardAddSeason=wardAddSeason.filter(x=>x!==s); else wardAddSeason.push(s); if(!wardAddSeason.length) wardAddSeason=['四季']; setRoute('wardrobe'); }
+function wardAddImgPreview(input){ const f=input.files&&input.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ wardAddImg=r.result; setRoute('wardrobe'); }; r.readAsDataURL(f); }
+function wardClosetRender(){
+  const w=wardData();
+  const cats=[['全部','👗'],['top','👚 上装'],['bottom','👖 下装'],['shoes','👟 鞋']];
+  const catTabs=cats.map(([k,l])=>`<button class="chip ${wdCat===k?'on':''}" onclick="wdCat='${k}';setRoute('wardrobe')">${l}</button>`).join('');
+  let items=w.items||[]; if(wdCat!=='全部') items=items.filter(x=>x.cat===wdCat); if(wdShowOld) items=items.filter(x=>!x.lastWorn||wdDaysAgo(x.lastWorn)>60);
+  const grid=items.length?`<div class="wd-grid3">${items.map(x=>wardCell(x)).join('')}</div>`:'<div class="u-empty"><div class="e">👗</div><div class="t">这里还没有衣物</div></div>';
+  return wdStats()+`<div class="chips" style="margin:8px 0">${catTabs}</div>`+grid+wardAddForm();
+}
+function wardOutfitTab(){ return wardRecRender()+'<div class="wd-sub">穿搭历史</div>'+wardRepeatWarn()+wardHistRender(); }
 function viewWardrobe(){
-  const lw=DB.get("wardWeather",null);
-  const city=DB.get("wardCity","");
+  const lw=DB.get("wardWeather",null); const city=DB.get("wardCity","");
   const wbox=lw?renderWeatherBox(lw.city,lw.temp,lw.code):`<div class="weather-temp">--°</div><div class="weather-info"><div id="wCity">${city||'设置城市'}</div><div id="wDesc">点下面获取实时天气</div></div><div class="weather-tip" id="wTip">根据温度，给你合适的穿搭建议～</div>`;
-  return `<div class="page-title">👗 电子衣橱</div><div class="page-desc">上传实物图 · 点图加入搭配 · 左右滑动看衣橱</div>
+  return `<div class="page-title">👗 电子衣橱</div><div class="page-desc">上传实物图 · 智能搭配 · 记录穿搭</div>
     <div class="weather-box">
       <div class="weather-top">${wbox}</div>
       <div class="weather-input">
         <input id="wCityIn" placeholder="输入城市，如：上海" value="${esc(city)}">
         <button class="btn btn-soft" onclick="fetchWeather()">获取天气</button>
       </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6a5a60;margin:8px 0 4px"><input type="checkbox" ${wdWeatherFilter?'checked':''} onchange="wdWeatherFilter=this.checked;setRoute('wardrobe')"> 随机时按天气过滤</label>
     </div>
-    <div id="wardBox">${wardInner()}</div>`;
+    <div class="wd-tabs"><button class="wd-tab ${wdTab==='outfit'?'on':''}" onclick="wdTab='outfit';setRoute('wardrobe')">🎀 今日搭配</button><button class="wd-tab ${wdTab==='closet'?'on':''}" onclick="wdTab='closet';setRoute('wardrobe')">👚 我的衣橱</button></div>
+    ${wdTab==='outfit'?wardOutfitTab():wardClosetRender()}
+  `;
 }
 const WCODE={0:["晴",""],1:["大致晴朗",""],2:["局部多云",""],3:["阴",""],45:["雾",""],48:["雾凇",""],51:["毛毛雨",""],53:["小雨",""],55:["中雨",""],61:["小雨",""],63:["中雨",""],65:["大雨",""],71:["小雪",""],73:["中雪",""],75:["大雪",""],80:["阵雨",""],81:["阵雨",""],82:["强阵雨",""],85:["阵雪",""],95:["雷阵雨",""],96:["雷阵雨伴冰雹",""]};
 function weatherTip(temp,code){
@@ -3400,17 +3568,19 @@ function wardCard(x,cat,worn){
   </div>`;
 }
 function wardClear(){ const w=wardData(); w.worn={}; DB.set("wardrobe",w); document.getElementById('wardBox').innerHTML=wardInner(); }
-function wardSelect(cat,id){ const w=wardData(); w.worn=w.worn||{}; w.worn[cat]=w.worn[cat]===id?null:id; DB.set("wardrobe",w); document.getElementById('wardBox').innerHTML=wardInner(); }
-function wardRandom(){ const w=wardData(); const byCat={}; w.items.forEach(x=>{(byCat[x.cat]=byCat[x.cat]||[]).push(x);}); w.worn={}; WCATS.forEach(c=>{const l=byCat[c.key]; if(l&&l.length)w.worn[c.key]=l[Math.floor(Math.random()*l.length)].id;}); DB.set("wardrobe",w); document.getElementById('wardBox').innerHTML=wardInner(); }
+function wardSelect(cat,id){ const w=wardData(); w.worn=w.worn||{}; w.worn[cat]=w.worn[cat]===id?null:id; if(w.worn[cat]!==null){ const it=w.items.find(x=>x.id===id); if(it) it.lastWorn=keyDate; } DB.set("wardrobe",w); setRoute("wardrobe"); }
+function wardRandom(){ const w=wardData(); const tw=DB.get('wardWeather',null); const t=tw?tw.temp:20; const curS=wardSeasonNow(); const byCat={}; w.items.forEach(x=>{(byCat[x.cat]=byCat[x.cat]||[]).push(x);}); w.worn={}; WCATS.forEach(c=>{ let l=byCat[c.key]||[]; if(wdWeatherFilter && t<12) l=l.filter(x=>!/(短袖|吊带|无袖|裙)/.test(x.name)); if(!l.length) l=byCat[c.key]||[]; if(l.length){ const it=l[Math.floor(Math.random()*l.length)]; w.worn[c.key]=it.id; it.lastWorn=keyDate; } }); DB.set("wardrobe",w); setRoute("wardrobe"); }
 function wardAdd(){
-  const n=document.getElementById('wd_name').value.trim(); if(!n)return;
-  const f=document.getElementById('wd_img')?document.getElementById('wd_img').files[0]:null;
-  const finish=img=>{ const w=wardData(); w.items=w.items||[];
-    w.items.push({id:Date.now(),name:n,cat:document.getElementById('wd_cat').value,color:document.getElementById('wd_color').value.trim(),season:document.getElementById('wd_season').value,img:img});
-    DB.set("wardrobe",w);
-    document.getElementById('wd_name').value='';document.getElementById('wd_color').value='';if(document.getElementById('wd_img'))document.getElementById('wd_img').value='';
-    document.getElementById('wardBox').innerHTML=wardInner(); };
-  if(f) readImg(f,finish); else finish(null);
+  const n=wardAddName.trim(); if(!n){ alert('先填名称～'); return; }
+  const cat=document.getElementById('wd_cat').value;
+  const season=wardAddSeason.length?wardAddSeason.join(','):'四季';
+  const color=wardAddColor||'其他';
+  const img=wardAddImg||null;
+  const w=wardData(); w.items=w.items||[];
+  w.items.push({id:Date.now(),name:n,cat:cat,color:color,season:season,img:img,lastWorn:null});
+  DB.set("wardrobe",w);
+  wardAddName=''; wardAddColor=''; wardAddSeason=[]; wardAddImg='';
+  setRoute("wardrobe");
 }
 function wardDel(id){ const w=wardData(); w.items=w.items.filter(x=>x.id!==id); DB.set("wardrobe",w); document.getElementById('wardBox').innerHTML=wardInner(); }
 function setWardSeason(c){ wardSeason=c; document.getElementById('wardBox').innerHTML=wardInner(); }
@@ -3836,38 +4006,70 @@ function setMoodMtime(t){ localStorage.setItem(MTIME_KEY+':mood', String(t)); }
 function moodSave(){
   const mood=document.querySelector('.mood-btn.on');
   const text=document.getElementById('moodText').value.trim();
-  const m=mood?mood.dataset.m:''; 
+  const m=mood?mood.dataset.m:'';
   if(!m){ alert('选一个心情吧～'); return; }
   if(!text){ alert('写点什么吧～'); return; }
-  const log=moodLog();
-  log.push({mood:m, text:text, date:keyDate, time:new Date().toTimeString().slice(0,5)});
-  setMoodLog(log);
+  const entry={mood:m, text:text, date:keyDate, time:new Date().toTimeString().slice(0,5), tags:moodKeywords(text), ai:moodAI({mood:m,text:text})};
+  const log=moodLog(); log.push(entry); setMoodLog(log);
   document.getElementById('moodText').value='';
   document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
-  setRoute('mood');
+  moodTab='review'; setRoute('mood');
 }
 function moodDel(i){ const log=moodLog(); log.splice(i,1); setMoodLog(log); setRoute('mood'); }
 const MOODS=[['😊','开心'],['😌','平静'],['😐','一般'],['😔','低落'],['😴','疲惫'],['🤔','困惑'],['🔥','激动'],['💔','难过']];
+let moodTab='write', moodShowMore=false, moodTagFilter='全部';
+function fmtKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function moodScore(m){ const s={'开心':5,'平静':4,'一般':3,'疲惫':2,'低落':1,'难过':1,'困惑':3,'激动':4}; return s[m]||3; }
+function moodColor(m){ const c={'开心':'#ffb3c7','平静':'#9fd6c4','一般':'#c7d2e0','疲惫':'#c3b1e0','低落':'#9aa7c7','难过':'#b3a0c8','困惑':'#ddcaa6','激动':'#ff9a8b'}; return c[m]||'#ffb3c7'; }
+function moodEmoji(m){ const e=MOODS.find(x=>x[1]===m); return e?e[0]:'😊'; }
+function moodScoreName(v){ const inv={5:'开心',4:'平静',3:'一般',2:'疲惫',1:'低落/难过'}; return inv[v]||'一般'; }
+function moodStreak(){ const log=moodLog(); if(!log.length) return 0; const set=new Set(log.map(x=>x.date)); let n=0; const d=new Date(); for(;;){ if(set.has(fmtKey(d))){ n++; d.setDate(d.getDate()-1); } else break; } return n; }
+function moodKeywords(text){ const map={'工作':['工作','加班','上班','项目','老板','会议','同事','公司'],'学习':['学习','读书','考试','背','雅思','课','英语'],'朋友':['朋友','聚餐','约会','闺蜜','聊天','聚会','兄弟','姐妹'],'健康':['运动','跑步','健身','瑜伽','睡眠','早睡','医院','感冒','身体','锻炼'],'家人':['爸妈','家人','回家','妈妈','爸爸','爷爷','奶奶','外公','外婆'],'美食':['吃','饭','火锅','奶茶','美食','咖啡','蛋糕','零食']}; const tags=[]; for(const k in map){ if(map[k].some(w=>text.indexOf(w)>=0)) tags.push(k); } return tags.length?tags:['日常']; }
+function moodAI(e){ const m=e.mood; const low=['低落','难过','疲惫']; if(low.indexOf(m)>=0) return '最近'+m+'偏多，记得早点休息、对自己温柔一点 💗 要不要喝杯热茶或听首歌？'; if(m==='开心') return '看到你今天心情不错，真为你开心～把这份好状态留久一点 🌸'; if(m==='平静') return '平静的日子也很珍贵，享受这份安稳与自在 ☕'; if(m==='激动') return '有让你兴奋的事呀！把这份能量用在喜欢的事上吧 🔥'; return '谢谢你和我说这些，我都在听 🤍 今天也辛苦了。'; }
+function moodMonthCounts(){ const log=moodLog(); const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'); const cnt={}; log.forEach(x=>{ if(x.date&&x.date.indexOf(ym)===0){ cnt[x.mood]=(cnt[x.mood]||0)+1; } }); const list=Object.keys(cnt).map(m=>({m:m,c:cnt[m],color:moodColor(m)})); return {total:list.reduce((a,b)=>a+b.c,0), list:list}; }
+function renderMoodTrend(){
+  const log=moodLog();
+  if(!log.length) return '<div class="u-empty"><div class="e">📈</div><div class="t">记录几天后生成你的心情曲线</div></div>';
+  const today=new Date(); const days=[];
+  for(let i=6;i>=0;i--){ const d=new Date(today); d.setDate(d.getDate()-i); days.push(d); }
+  const pts=days.map(d=>{ const k=fmtKey(d); const rec=log.filter(x=>x.date===k); return rec.length?moodScore(rec[rec.length-1].mood):null; });
+  const W=300,H=92,pl=16,pr=16,pt=12,pb=18; const n=7;
+  const X=i=>pl+i*(W-pl-pr)/(n-1); const Y=v=>pt+(1-(v-1)/4)*(H-pt-pb);
+  let path=''; let started=false; const dots=[];
+  for(let i=0;i<n;i++){ if(pts[i]==null) continue; const cx=X(i).toFixed(1),cy=Y(pts[i]).toFixed(1); if(!started){path='M'+cx+' '+cy;started=true;} else path+='L'+cx+' '+cy; dots.push('<circle cx="'+cx+'" cy="'+cy+'" r="3.4" fill="#E88B9E" stroke="#fff" stroke-width="1.5"><title>'+(days[i].getMonth()+1)+'/'+(days[i].getDate())+' · '+moodScoreName(pts[i])+'</title></circle>'); }
+  let xl=''; for(let i=0;i<n;i++){ xl+='<text x="'+X(i).toFixed(1)+'" y="'+(H-4)+'" font-size="9" fill="#b0a0a6" text-anchor="middle">'+(days[i].getMonth()+1)+'/'+(days[i].getDate())+'</text>'; }
+  const lineSvg='<svg viewBox="0 0 '+W+' '+H+'" class="mood-line">'+(path?'<path d="'+path+'" fill="none" stroke="#E88B9E" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>':'')+dots.join('')+xl+'</svg>';
+  const mk=moodMonthCounts(); let ringHtml='<div class="mood-ring-empty">本月暂无记录</div>';
+  if(mk.total>0){ let acc=0; const segs=[]; mk.list.forEach(it=>{ const start=acc/mk.total*360; const endv=(acc+it.c)/mk.total*360; segs.push('<div class="ring-seg" style="transform:rotate('+start.toFixed(1)+'deg);background:conic-gradient('+it.color+' '+(endv-start).toFixed(1)+'deg, transparent 0)"></div>'); acc+=it.c; }); ringHtml='<div class="mood-ring">'+segs.join('')+'<div class="mood-ring-c">'+mk.total+'<br><span>本月</span></div></div>'; }
+  const recDays=pts.filter(p=>p!=null).length; let lowIdx=-1,lowV=99; for(let i=0;i<n;i++){ if(pts[i]!=null && pts[i]<lowV){lowV=pts[i];lowIdx=i;} }
+  const overall= recDays? (pts.reduce((a,b)=>a+(b||0),0)/recDays):3;
+  const tone= overall>=4?'整体不错':overall>=3?'整体平稳':'偏低落';
+  const summary= recDays? ('本周心情'+tone+(lowIdx>=0?('，'+(days[lowIdx].getMonth()+1)+'/'+(days[lowIdx].getDate())+' 最低落'):'')+'，共记录 '+recDays+' 天') : '开始记录后这里会生成你的心情小结';
+  return '<div class="u-card mood-trend"><div class="mood-trend-h">📈 近 7 天心情</div>'+lineSvg+'<div class="mood-trend-row"><div class="mood-ring-wrap"><div class="mood-trend-h2">本月情绪占比</div>'+ringHtml+'</div></div><div class="mood-summary">💡 '+summary+'</div></div>';
+}
+function moodDismissAI(i){ const log=moodLog(); if(log[i]){ log[i].ai=''; setMoodLog(log); } setRoute('mood'); }
 function viewMood(){
-  const log=moodLog().slice().reverse();
-  const todayCount=log.filter(x=>x.date===keyDate).length;
-  return `<div class="page-title"><img class="kitty-page-icon" data-img="coffee" src="" alt=""> 心情日记</div>
+  const all=moodLog(); const rev=all.slice().reverse();
+  const todayCount=all.filter(x=>x.date===keyDate).length;
+  const streak=moodStreak();
+  const mlist=moodShowMore?MOODS:MOODS.slice(0,4);
+  const tagSet=Array.from(new Set(all.flatMap(x=>x.tags||['日常'])));
+  const tagsAll=['全部'].concat(tagSet);
+  const filtered= moodTagFilter==='全部'?rev:rev.filter(x=>(x.tags||[]).indexOf(moodTagFilter)>=0);
+  return `<div class="page-title">💭 心情日记</div>
     <div class="page-desc">记录每天的心情变化 · 回看情绪起伏</div>
-    <div class="stat-row"><div class="ministat" style="flex:1"><b>${log.length}</b>条记录</div><div class="ministat" style="flex:1"><b>${todayCount}</b>今天已记</div></div>
-    <div class="sec-title">📝 写今天的日记</div>
-    <div class="mood-picker">${MOODS.map(([e,m])=>`<button class="mood-btn" data-m="${m}" onclick="this.classList.toggle('on');document.querySelectorAll('.mood-btn').forEach(b=>{if(b!==this)b.classList.remove('on')})">${e}<span>${m}</span></button>`).join('')}</div>
-    <textarea class="ta" id="moodText" placeholder="今天发生了什么？心情怎么样？" style="min-height:100px;margin-top:8px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();moodSave()}"></textarea>
-    <button class="btn btn-pink" style="width:100%;margin-top:8px" onclick="moodSave()">💾 保存日记</button>
-    <div class="sec-title">📖 心情回看</div>
-    ${log.length?log.map((x,i)=>`<div class="mood-entry">
-      <div style="font-size:24px">${MOODS.find(([e,m])=>m===x.mood)?MOODS.find(([e,m])=>m===x.mood)[0]:'😊'}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;color:var(--ink-soft)">${x.date} ${x.time||''} · ${x.mood}</div>
-        <div style="font-size:14px;margin-top:4px">${esc(x.text)}</div>
-      </div>
-      <button class="del" onclick="moodDel(${log.length-1-i})" style="background:none;border:none;color:#d4b2bc;font-size:18px;cursor:pointer">×</button>
-    </div>`).join(''):'<p style="color:var(--ink-soft);text-align:center;padding:20px 0">还没有日记，记录今天的心情吧 💭</p>'}
-    `;
+    <div class="stat-row"><div class="ministat" style="flex:1"><b>${all.length}</b>条记录</div><div class="ministat" style="flex:1"><b>${todayCount}</b>今天已记</div><div class="ministat" style="flex:1"><b>🔥 ${streak}</b>连续天</div></div>
+    <div class="mood-tabs"><button class="mood-tab ${moodTab==='write'?'on':''}" onclick="moodTab='write';setRoute('mood')">✏️ 写日记</button><button class="mood-tab ${moodTab==='review'?'on':''}" onclick="moodTab='review';setRoute('mood')">📖 回看</button></div>
+    ${moodTab==='write'?`
+      <div class="mood-picker">${mlist.map(([e,m])=>`<button class="mood-btn" data-m="${m}" onclick="this.classList.toggle('on');document.querySelectorAll('.mood-btn').forEach(b=>{if(b!==this)b.classList.remove('on')})">${e}<span>${m}</span></button>`).join('')}${moodShowMore?`<button class="mood-more" onclick="moodShowMore=false;setRoute('mood')">收起</button>`:`<button class="mood-more" onclick="moodShowMore=true;setRoute('mood')">⋯ 更多</button>`}</div>
+      <textarea class="ta" id="moodText" placeholder="今天发生了什么？心情怎么样？" style="min-height:100px;margin-top:8px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();moodSave()}"></textarea>
+      <button class="btn btn-pink" style="width:100%;margin-top:8px" onclick="moodSave()">💾 保存日记</button>
+    `:`
+      ${renderMoodTrend()}
+      <div class="mood-filters">${tagsAll.map(t=>`<button class="chip ${moodTagFilter===t?'on':''}" onclick="moodTagFilter='${t}';setRoute('mood')">${t}</button>`).join('')}</div>
+      ${filtered.length?filtered.map((x,i)=>{ const oi=all.length-1-i; return `<div class="mood-entry"><div class="me-emoji">${moodEmoji(x.mood)}</div><div class="me-body"><div class="me-meta">${x.date} ${x.time||''} · ${x.mood}</div><div class="me-text">${esc(x.text)}</div>${x.tags&&x.tags.length?`<div class="mood-tags">${x.tags.map(t=>`<span class="mt">${t}</span>`).join('')}</div>`:''}${x.ai?`<div class="u-ai"><div class="h">💌 AI 暖心回应 <button onclick="moodDismissAI(${oi})">关闭</button></div><div class="b">${esc(x.ai)}</div></div>`:''}</div><button class="del" onclick="moodDel(${oi})" style="background:none;border:none;color:#d4b2bc;font-size:18px;cursor:pointer">×</button></div>`; }).join(''):`<div class="u-empty"><div class="e">💭</div><div class="t">还没有日记，记录今天的心情吧</div></div>`}
+    `}
+  `;
 }
 
 /* ===== Hello Kitty 夜间深色模式 ===== */
@@ -3926,12 +4128,34 @@ function kakaFaceSVG(){ return `<svg class="kaka-face" viewBox="0 0 100 100" xml
   <circle cx="34" cy="66" r="3" fill="#f7a8b8"/><circle cx="66" cy="66" r="3" fill="#f7a8b8"/>
 </svg>`; }
 function kakaLast(arr){ if(!arr||!arr.length) return '尚无记录'; const d=arr[arr.length-1].date; return d; }
+let kakaMoodOpen=false, kakaHealthOpen=false;
+function kakaHuman(days){ if(days==null||days<0) return null; if(days<365) return Math.max(1,Math.round(days/365*15)); const y=Math.floor(days/365); let human=15+9; for(let i=2;i<=y;i++) human+=5; if(days%365>183) human+=2; return human; }
+function kakaRemindCard(type,ic,label){
+  const k=DB.get('kaka',DEF.kaka);
+  const arr=k[type]||[]; const last=arr.length?arr[arr.length-1].date:null;
+  const defp={bath:15,groom:45,deworm:30};
+  const period=(k.period&&k.period[type])||defp[type];
+  let days='尚无记录', state='gray', passed=0;
+  if(last){ const d=new Date(last+'T00:00:00'); const now=new Date(); now.setHours(0,0,0,0); d.setHours(0,0,0,0); passed=Math.round((now-d)/86400000); days='上次 '+last+'・已过 '+passed+' 天'; const remain=period-passed; if(remain<0) state='red'; else if(remain<5) state='orange'; else state='gray'; }
+  const tip= state==='red'?('该 '+label+' 啦 '+(type==='bath'?'🛁':type==='groom'?'✂️':'💊')) : state==='orange'?'即将到期':'';
+  return `<div class="kaka-remind ${state}" onclick="kakaSetPeriod('${type}')">
+    <div class="kr-ic">${ic}</div>
+    <div class="kr-body"><div class="kr-t">${label}</div><div class="kr-d">${days}</div>${tip?`<div class="kr-tip">${tip}</div>`:''}</div>
+    ${state!=='gray'&&last?`<button class="kr-done" onclick="event.stopPropagation();kakaDone('${type}')">✅ 已完成</button>`:''}
+  </div>`;
+}
+function kakaDone(type){ kakaEvent(type, type==='bath'?'🛁 洗澡':type==='groom'?'✂️ 剪毛':'💊 驱虫'); }
+function kakaSetPeriod(type){ const k=DB.get('kaka',DEF.kaka); const defp={bath:15,groom:45,deworm:30}; const cur=(k.period&&k.period[type])||defp[type]; const v=prompt('设置「'+(type==='bath'?'洗澡':type==='groom'?'剪毛':'驱虫')+'」提醒周期（天），当前 '+cur+'：', cur); if(v==null) return; const n=parseInt(v); if(!isNaN(n)&&n>0){ k.period=k.period||{}; k.period[type]=n; DB.set('kaka',k); setRoute('kaka'); } }
+function kakaHealth(){ const k=DB.get('kaka',DEF.kaka); const all=[]; ['bath','groom','deworm'].forEach(t=>{(k[t]||[]).forEach(d=>all.push({t:t,date:d.date||d}));}); all.sort((a,b)=>b.date<a.date?-1:1); if(!all.length) return '<div class="u-empty"><div class="e">📋</div><div class="t">还没有健康记录</div></div>'; const nm={bath:'🛁 洗澡',groom:'✂️ 剪毛',deworm:'💊 驱虫'}; return '<div class="kaka-hl">'+all.map(x=>`<div class="kaka-hl-item"><span>${nm[x.t]}</span><b>${x.date}</b></div>`).join('')+'</div>'; }
+function kakaQuickRecord(){ openSheet('<h3>＋ 快速记录</h3><div class="kaka-quick">'+['bath','groom','deworm'].map(t=>`<button class="btn btn-pink" style="width:100%;margin-bottom:8px" onclick="closeSheet();kakaEvent('${t}','${t==='bath'?'🛁 洗澡':t==='groom'?'✂️ 剪毛':'💊 驱虫'}')">${t==='bath'?'🛁 洗澡':t==='groom'?'✂️ 剪毛':'💊 驱虫'}</button>`).join('')+'</div>'); }
+function kakaMoodExpand(){ kakaMoodOpen=!kakaMoodOpen; setRoute('kaka'); }
 function viewKaka(){
   const k=DB.get('kaka',DEF.kaka);
-  const moods=['开心','黏人','高冷','犯困','吃醋','兴奋'];
   const hd=k.homeDate||{y:"",m:"",d:""};
   const homeDays=(hd.y&&hd.m&&hd.d)?kakaDays(hd):null;
-  return `<div class="kaka-home">
+  const human=homeDays!=null?kakaHuman(homeDays):null;
+  const moods=['开心','黏人','高冷','犯困','吃醋','兴奋'];
+  return `<div class="kaka-home u-card">
       <div class="kaka-home-h">🏠 到家纪念日</div>
       <div class="kaka-home-inputs">
         <input id="kakaHomeY" type="number" inputmode="numeric" min="1900" max="2100" placeholder="年" value="${esc(hd.y||'')}">
@@ -3939,7 +4163,7 @@ function viewKaka(){
         <input id="kakaHomeD" type="number" inputmode="numeric" min="1" max="31" placeholder="日" value="${esc(hd.d||'')}">
         <button class="btn btn-pink" onclick="kakaSaveHomeDate()">保存</button>
       </div>
-      ${homeDays!==null?`<div class="kaka-days">已相伴 <b>${homeDays}</b> 天</div>`:''}
+      ${homeDays!==null?`<div class="kaka-days">已相伴 <b>${homeDays}</b> 天${human!=null?` · 🐶 相当于人类 <b>${human}</b> 岁`:''}</div>`:''}
     </div>
     <div class="page-title">卡卡の小天地</div>
     <div class="kaka-hero">
@@ -3947,19 +4171,18 @@ function viewKaka(){
       <div><div class="kaka-name">卡卡 🐾</div><div class="kaka-sub">今天心情：${esc(k.mood)} · 已记录 ${k.moments.length} 个有趣瞬间</div></div>
     </div>
     <div class="kaka-grid">
-      <div class="kaka-stat"><div class="ki">🛁</div><div class="kt">上次洗澡</div><div class="kv">${kakaLast(k.bath)}</div></div>
-      <div class="kaka-stat"><div class="ki">✂️</div><div class="kt">上次剪毛</div><div class="kv">${kakaLast(k.groom)}</div></div>
-      <div class="kaka-stat"><div class="ki">💊</div><div class="kt">上次驱虫</div><div class="kv">${kakaLast(k.deworm)}</div></div>
+      ${kakaRemindCard('bath','🛁','洗澡')}
+      ${kakaRemindCard('groom','✂️','剪毛')}
+      ${kakaRemindCard('deworm','💊','驱虫')}
       <div class="kaka-stat"><div class="ki">💗</div><div class="kt">今日心情</div><div class="kv">${esc(k.mood)}</div></div>
     </div>
     <div class="sec-title">快速记录</div>
-    <div class="add" style="display:block">
-      <button class="btn btn-soft" style="width:100%;margin-bottom:6px" onclick="kakaEvent('bath','🛁 洗澡')">🛁 记录洗澡</button>
-      <button class="btn btn-soft" style="width:100%;margin-bottom:6px" onclick="kakaEvent('groom','✂️ 剪毛')">✂️ 记录剪毛</button>
-      <button class="btn btn-soft" style="width:100%" onclick="kakaEvent('deworm','💊 驱虫')">💊 记录驱虫</button>
-    </div>
-    <div class="sec-title">今天卡卡心情怎么样</div>
-    <div class="kaka-mood">${moods.map(m=>`<button class="chip ${k.mood===m?'on':''}" onclick="kakaMoodSet('${m}')">${m}</button>`).join('')}</div>
+    <button class="btn btn-pink" style="width:100%" onclick="kakaQuickRecord()">＋ 快速记录</button>
+    <div class="sec-title">今天卡卡心情</div>
+    <div class="kaka-mood-row" onclick="kakaMoodExpand()">今日心情：<b>${esc(k.mood)}</b> <span class="arr">${kakaMoodOpen?'▲':'▾'}</span></div>
+    ${kakaMoodOpen?`<div class="kaka-mood">${moods.map(m=>`<button class="chip ${k.mood===m?'on':''}" onclick="kakaMoodSet('${m}')">${m}</button>`).join('')}</div>`:''}
+    <div class="sec-title">📋 健康记录 <span class="hl-toggle" onclick="kakaHealthOpen=!kakaHealthOpen;setRoute('kaka')">${kakaHealthOpen?'收起 ▴':'展开 ▾'}</span></div>
+    ${kakaHealthOpen?kakaHealth():''}
     <div class="sec-title">有趣瞬间</div>
     <div class="add" style="display:block;margin-top:8px">
       <input id="kakaText" placeholder="今天卡卡…（如：追着自己的尾巴转圈）" style="width:100%;margin-bottom:6px" onkeydown="if(event.key==='Enter')kakaAddMoment()">

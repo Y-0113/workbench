@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260826c';
+  var WB_VER='20260826d';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -2944,7 +2944,7 @@ function skinDelTmpImg(i){ _skinTmpImgs.splice(i,1); skinRenderTmpImgs(); }
 
 /* ---- 主框架 ---- */
 function viewSkin(){
-  skinIpBind();
+  skinIpBindOnce();
   const skin=skinGet();
   const usingCnt=skin.products.filter(p=>p.status==='using').length;
   const avg=skinAvgScore();

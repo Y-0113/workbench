@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260826b';
+  var WB_VER='20260826c';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -907,7 +907,7 @@
 .search-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ===== 旅行足迹地图（3D 地球） ===== */
-.travel-earth-card{position:relative;background:linear-gradient(180deg,#0b1f33 0%,#143a5c 100%);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow)}
+.travel-earth-card{position:relative;background:transparent;border-radius:var(--radius);overflow:visible;margin-bottom:14px}
 .travel-map3d{width:100%;height:42vh;min-height:300px;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%)}
 .travel-map3d canvas{display:block}
 .travel-map-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%);color:#eaf4ff;font-size:14px;z-index:3}
@@ -916,7 +916,7 @@
 .travel-map-error{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%);color:#eaf4ff;font-size:14px;text-align:center;padding:20px;z-index:3}
 .travel-map-error .tme-icon{font-size:32px}
 .travel-map-error .tme-btn{margin-top:4px;padding:8px 20px;border:none;border-radius:12px;background:var(--kitty-pink);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
-.travel-map2d{width:100%;height:42vh;min-height:300px;position:relative;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%);overflow:hidden}.travel-globe-wrap{position:relative;width:100%;min-height:300px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a2b4c 0%,#050b1a 100%);padding:14px 0;overflow:hidden}.travel-globe-canvas{display:block;width:auto;height:auto;max-width:96%;aspect-ratio:2/1;border-radius:999px;box-shadow:0 8px 40px rgba(122,175,255,.45),inset 0 0 40px rgba(0,0,0,.55);background:#0e3a63}.travel-globe-tip{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:rgba(255,255,255,.6);font-size:11px;pointer-events:none}@media(max-width:560px){.travel-globe-canvas{max-width:100%}.travel-globe-wrap{padding:8px 0;min-height:220px}}
+.travel-map2d{width:100%;height:42vh;min-height:300px;position:relative;background:transparent;overflow:hidden}.travel-map3d-v2{width:100%;background:transparent;display:flex;justify-content:center}.travel-globe-wrap{position:relative;width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:transparent;padding:10px 0 30px;margin:0 auto;overflow:visible}.travel-globe-canvas{display:block;width:100%;height:auto;aspect-ratio:2/1;border-radius:999px;box-shadow:0 10px 44px rgba(122,175,255,.38),0 4px 18px rgba(90,130,180,.18),inset 0 0 40px rgba(0,0,0,.55);background:transparent}.travel-globe-tip{position:absolute;left:0;right:0;bottom:6px;text-align:center;color:var(--ink-soft);font-size:11px;pointer-events:none}@media(max-width:560px){.travel-globe-wrap{max-width:100%;padding:6px 0 28px}.travel-globe-canvas{max-width:100%}}
 .travel-map2d svg{position:absolute;inset:0;width:100%;height:100%}
 .map-land{fill:#2d6a4f;stroke:#3d8b61;stroke-width:0.6;opacity:.55}
 .map-pin-group{cursor:pointer;pointer-events:all}
@@ -4535,7 +4535,7 @@ function renderTravelMap(el, cities){
   var latest=ordered.length? ordered[ordered.length-1]:null;
   el.innerHTML='<div class="travel-globe-wrap"><canvas class="travel-globe-canvas" id="travelGlobeCanvas" aria-label="travel globe"></canvas><div class="travel-globe-tip">🌏 拖动旋转 · 自动播放</div></div>';
   var cv=el.querySelector('canvas'); if(!cv){ try{ travelRender2D(el,cities); }catch(_e){} return; }
-  var ctx=cv.getContext('2d', {alpha:false});
+  var ctx=cv.getContext('2d', {alpha:true});
   var img=new Image();
   img.onerror=function(){ try{ travelRender2D(el,cities); }catch(_e){} };
   img.onload=function(){
@@ -4610,7 +4610,7 @@ function renderTravelMap(el, cities){
       if(autoRotate){ phase += dt * 0.012; }
       var iw=img.width, ih=img.height;
       /* 先用星空背景打底（canvas 是透明圆形，背景需先 fill 黑色）*/
-      ctx.fillStyle='#050b1a'; ctx.fillRect(0,0,W,H);
+      ctx.clearRect(0,0,W,H);
       /* clip 到圆形，呈现球面感 */
       ctx.save();
       var cx=W/2, cy=H/2;

@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260824d';
+  var WB_VER='20260825a';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1472,7 +1472,7 @@ const DB=(()=>{
   const getMt=(p)=> mt[p]||0;
   const setMt=(p,t)=>{ mt[p]=t; saveMt(); };
   const mergeMt=(incoming)=>{ for(const k in incoming){ if((mt[k]||0)<incoming[k]){ mt[k]=incoming[k]; } } saveMt(); };
-  const save=()=>localStorage.setItem(K,JSON.stringify(d));
+  const save=()=>{ try{ localStorage.setItem(K,JSON.stringify(d)); }catch(e){ console.warn('DB.save 失败(可能超出本地存储配额)',e); } };
   return { key:K, d, save,
     get:(p,def)=> (p in d ? d[p] : def),
     set:(p,v)=>{ d[p]=v; save(); touch(p); scheduleSync(); },
@@ -1886,15 +1886,17 @@ function applySnapshot(d){
   const m=_wrapPart(d.main), b=_wrapPart(d.body), g=_wrapPart(d.goods), l=_wrapPart(d.ledger), md=_wrapPart(d.mood);
   let changed=false;
   if(m && m.v){
-    localStorage.setItem(DB.key, JSON.stringify(m.v));
-    if(m.m){ /* 按字段合并 mtime：仅当云端某 key 的 mtime 更新时采纳 */
-      const localMt=DB.mtimes();
-      const merged=Object.assign({}, localMt);
-      for(const k in m.m){ if((merged[k]||0) < m.m[k]){ merged[k]=m.m[k]; } }
-      for(const k of Object.keys(merged)){
-        if(!(k in (m.m||{})) && (merged[k]||0) < (localMt[k]||0)){ merged[k]=localMt[k]; }
-      }
-      for(const k in merged){ if(merged[k]) DB.setMt(k, merged[k]); }
+    /* 按 key 的 mtime 合并：仅采纳云端较新(或同级)的 key，保留本地较新的 key，避免整片覆盖丢失本地刚上传的图片 */
+    const cloudV=m.v, cloudM=m.m||{};
+    const localV=DB.all(), localM=DB.mtimes();
+    const merged=Object.assign({}, localV);
+    for(const k in cloudV){ if((cloudM[k]||0) >= (localM[k]||0)){ merged[k]=cloudV[k]; } }
+    localStorage.setItem(DB.key, JSON.stringify(merged));
+    if(m.m){
+      const mergedM=Object.assign({}, localM);
+      for(const k in cloudM){ if((cloudM[k]||0) > (mergedM[k]||0)) mergedM[k]=cloudM[k]; }
+      for(const k in localM){ if((localM[k]||0) > (mergedM[k]||0)) mergedM[k]=localM[k]; }
+      for(const k in mergedM){ if(mergedM[k]) DB.setMt(k, mergedM[k]); }
     }
     changed=true;
   }
@@ -2770,7 +2772,7 @@ function delGoods(id){
 }
 
 let _goodsTmpPics=[];
-function goodsPickImgs(input){ const max=3; const files=input.files; if(!files||!files.length) return; for(let i=0;i<files.length && _goodsTmpPics.length<max; i++){ const r=new FileReader(); r.onload=()=>{ _goodsTmpPics.push(r.result); if(_goodsTmpPics.length<=max) goodsRenderTmpPics(); }; r.readAsDataURL(files[i]); } input.value=''; goodsRenderTmpPics(); }
+function goodsPickImgs(input){ const max=3; const files=input.files; if(!files||!files.length) return; let remain=max-_goodsTmpPics.length; for(let i=0;i<files.length && remain>0; i++,remain--){ const file=files[i]; readImgC(file, u=>{ _goodsTmpPics.push(u); goodsRenderTmpPics(); }); } input.value=''; goodsRenderTmpPics(); }
 function goodsRenderTmpPics(){ const box=document.getElementById('gUpList'); if(!box) return; box.innerHTML=_goodsTmpPics.map((u,i)=>`<div class="si" style="background:url(${u}) center/cover"><div class="x" onclick="goodsDelTmpPic(${i})">×</div></div>`).join('')+(_goodsTmpPics.length<3?'<div class="si add" onclick="document.getElementById(\'g_file\').click()">＋</div>':''); }
 function goodsDelTmpPic(i){ _goodsTmpPics.splice(i,1); goodsRenderTmpPics(); }
 
@@ -3476,7 +3478,7 @@ function addMakeup(){
     items.push({t,cat:mkCatNow,img:img||"",u:document.getElementById("mk_u").value.trim(),plat:document.getElementById("mk_plat").value});
     DB.set("makeup",items); setRoute("makeup");
   };
-  if(f.files&&f.files[0]){ const r=new FileReader(); r.onload=()=>finish(r.result); r.readAsDataURL(f.files[0]); } else finish("");
+  if(f.files&&f.files[0]){ readImgC(f.files[0], finish); } else finish("");
 }
 function delMakeup(i){ const items=DB.get("makeup",DEF.makeup).map(normalizeMakeup); items.splice(i,1); DB.set("makeup",items); setRoute("makeup"); }
 
@@ -3589,9 +3591,7 @@ function rcBindImgPreview(){
   if(!f||!pv) return;
   f.onchange=()=>{
     if(f.files&&f.files[0]){
-      const r=new FileReader();
-      r.onload=()=>{ pv.src=r.result; _rcPendingImg=r.result; };
-      r.readAsDataURL(f.files[0]);
+      readImgC(f.files[0], u=>{ pv.src=u; _rcPendingImg=u; });
     } else { pv.src=recCatImg('炒'); _rcPendingImg=''; }
   };
   /* 默认显示分类默认图 */
@@ -3777,7 +3777,7 @@ function wardAddForm(){
     </div>`;
 }
 function wardToggleSeason(s){ if(wardAddSeason.indexOf(s)>=0) wardAddSeason=wardAddSeason.filter(x=>x!==s); else wardAddSeason.push(s); if(!wardAddSeason.length) wardAddSeason=['四季']; setRoute('wardrobe'); }
-function wardAddImgPreview(input){ const f=input.files&&input.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ wardAddImg=r.result; setRoute('wardrobe'); }; r.readAsDataURL(f); }
+function wardAddImgPreview(input){ const f=input.files&&input.files[0]; if(!f) return; readImgC(f, u=>{ wardAddImg=u; setRoute('wardrobe'); }); }
 function wardClosetRender(){
   const w=wardData();
   const cats=[['全部','👗'],['top','👚 上装'],['bottom','👖 下装'],['shoes','👟 鞋']];
@@ -3976,6 +3976,18 @@ function readImg(file,cb){
       const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
       cb(c.toDataURL('image/jpeg',0.7)); };
     img.src=e.target.result; };
+  r.readAsDataURL(file);
+}
+/* 通用压缩：用户上传的条目图片统一压缩到最长边 800px 的 JPEG 0.72，避免 base64 撑爆 localStorage/云端上限 */
+function readImgC(file,cb){
+  const r=new FileReader();
+  r.onload=e=>{ const img=new Image();
+    img.onload=()=>{ let w=img.width,h=img.height,max=800; if(w>max||h>max){ const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s); }
+      const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+      try{ cb(c.toDataURL('image/jpeg',0.72)); }catch(err){ cb(e.target.result); } };
+    img.onerror=()=>{ cb(e.target.result); };
+    img.src=e.target.result; };
+  r.onerror=()=>{ cb(''); };
   r.readAsDataURL(file);
 }
 function wardInner(){
@@ -4902,7 +4914,7 @@ function viewKaka(){
 }
 function kakaEvent(type,label){ const k=DB.get('kaka',DEF.kaka); if(!['bath','groom','deworm'].includes(type)) return; k[type]=k[type]||[]; k[type].push({date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
 function kakaMoodSet(m){ const k=DB.get('kaka',DEF.kaka); k.mood=m; k.moodLog.push({m,date:keyDate}); DB.set('kaka',k); setRoute('kaka'); }
-function kakaAddMoment(){ const t=document.getElementById('kakaText').value.trim(); if(!t)return; const f=document.getElementById('kakaImg'); const k=DB.get('kaka',DEF.kaka); const add=()=>{ k.moments.push({text:t,mood:k.mood,date:keyDate,img:f.__img||''}); DB.set('kaka',k); setRoute('kaka'); }; if(f.files&&f.files[0]){ const r=new FileReader(); r.onload=()=>{f.__img=r.result;add();}; r.readAsDataURL(f.files[0]); } else add(); }
+function kakaAddMoment(){ const t=document.getElementById('kakaText').value.trim(); if(!t)return; const f=document.getElementById('kakaImg'); const k=DB.get('kaka',DEF.kaka); const add=()=>{ k.moments.push({text:t,mood:k.mood,date:keyDate,img:f.__img||''}); DB.set('kaka',k); setRoute('kaka'); };   if(f.files&&f.files[0]){ readImgC(f.files[0], u=>{ f.__img=u; add(); }); } else add(); }
 function kakaDelMoment(i){ const k=DB.get('kaka',DEF.kaka); k.moments.splice(i,1); DB.set('kaka',k); setRoute('kaka'); }
 function kakaDays(hd){
   const y=+hd.y, m=+hd.m, d=+hd.d;
@@ -4946,7 +4958,7 @@ function travelAddItem(tid,cat){
   if(cat==='foods'){ const r=document.getElementById('trr_'+tid+'_'+cat); item.rating=r?Number(r.value):5; }
   const arr=DB.get('travel',DEF.travel); const trip=arr.find(x=>x.id===tid); if(!trip) return;
   const finish=(img)=>{ item.img=img||''; if(!trip[cat]) trip[cat]=[]; trip[cat].push(item); DB.set('travel',arr); setRoute('travel'); };
-  if(f&&f.files&&f.files[0]){ const r=new FileReader(); r.onload=()=>finish(r.result); r.readAsDataURL(f.files[0]); } else finish('');
+  if(f&&f.files&&f.files[0]){ readImgC(f.files[0], finish); } else finish('');
 }
 function travelDelItem(tid,cat,idx){
   const arr=DB.get('travel',DEF.travel); const trip=arr.find(x=>x.id===tid); if(!trip||!trip[cat]) return;

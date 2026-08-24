@@ -1,0 +1,16 @@
+{
+  "name": "心怡工作台",
+  "short_name": "工作台",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff0f3",
+  "theme_color": "#fff0f3",
+  "icons": [
+    {
+      "src": "./app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

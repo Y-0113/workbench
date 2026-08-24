@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260825b';
+  var WB_VER='20260826a';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -30,9 +30,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="./app-icon.png">
   <link rel="apple-touch-icon" href="./app-icon.png">
   <link rel="manifest" href="./manifest.json">
-<!-- 旅行足迹 3D 地球：echarts + echarts-gl（defer 懒加载，进入旅行路由时才初始化） -->
-<script defer src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+<!-- 旅行足迹 3D 地球：echarts + echarts-gl 动态加载（进入旅行路由时按需加载，多 CDN 回退） -->
 <style>
   :root{
     /* Hello Kitty 主题色 */
@@ -912,6 +910,12 @@
 .travel-earth-card{position:relative;background:linear-gradient(180deg,#0b1f33 0%,#143a5c 100%);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow)}
 .travel-map3d{width:100%;height:42vh;min-height:300px;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%)}
 .travel-map3d canvas{display:block}
+.travel-map-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%);color:#eaf4ff;font-size:14px;z-index:3}
+.travel-map-loading .tml-spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.2);border-top-color:#7ec8ff;border-radius:50%;animation:tmlSpin .8s linear infinite}
+@keyframes tmlSpin{to{transform:rotate(360deg)}}
+.travel-map-error{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%);color:#eaf4ff;font-size:14px;text-align:center;padding:20px;z-index:3}
+.travel-map-error .tme-icon{font-size:32px}
+.travel-map-error .tme-btn{margin-top:4px;padding:8px 20px;border:none;border-radius:12px;background:var(--kitty-pink);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
 .travel-map2d{width:100%;height:42vh;min-height:300px;position:relative;background:linear-gradient(180deg,#1a4d7a 0%,#0e3a63 100%);overflow:hidden}
 .travel-map2d svg{position:absolute;inset:0;width:100%;height:100%}
 .map-land{fill:#2d6a4f;stroke:#3d8b61;stroke-width:0.6;opacity:.55}
@@ -4502,44 +4506,118 @@ function travelMapHTML(){
     <button class="travel-fab" title="添加城市" onclick="openCitySearch()">＋</button>
   </div>`;
 }
+/* 动态加载 echarts + echarts-gl（多 CDN 回退） */
+var _echartsGLoaded=false, _echartsGLoading=false, _echartsGLQueue=[];
+function loadEchartsGL(cb){
+  if(typeof echarts!=='undefined' && typeof echarts.init==='function'){
+    _echartsGLoaded=true; cb(true); return;
+  }
+  if(_echartsGLoaded){ cb(true); return; }
+  _echartsGLQueue.push(cb);
+  if(_echartsGLoading) return;
+  _echartsGLoading=true;
+  var echCDNs=[
+    'https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js',
+    'https://cdn.staticfile.org/echarts/5.5.0/echarts.min.js',
+    'https://lib.baomitu.com/echarts/5.5.0/echarts.min.js',
+    'https://unpkg.com/echarts@5.5.0/dist/echarts.min.js'
+  ];
+  var glCDNs=[
+    'https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js',
+    'https://cdn.staticfile.org/echarts-gl/2.0.9/echarts-gl.min.js',
+    'https://lib.baomitu.com/echarts-gl/2.0.9/echarts-gl.min.js',
+    'https://unpkg.com/echarts-gl@2.0.9/dist/echarts-gl.min.js'
+  ];
+  function loadScript(urls, done){
+    var i=0;
+    (function next(){
+      if(i>=urls.length){ done(false); return; }
+      var u=urls[i++]; var s=document.createElement('script');
+      s.src=u; s.async=true;
+      s.onload=function(){ done(true); };
+      s.onerror=function(){ s.remove?s.remove():s.parentNode&&s.parentNode.removeChild(s); next(); };
+      document.head.appendChild(s);
+    })();
+  }
+  loadScript(echCDNs, function(okE){
+    if(!okE){
+      _echartsGLoading=false;
+      _echartsGLQueue.forEach(function(f){f(false);}); _echartsGLQueue=[];
+      return;
+    }
+    loadScript(glCDNs, function(okG){
+      _echartsGLoading=false; _echartsGLoaded=okG;
+      _echartsGLQueue.forEach(function(f){f(okG);}); _echartsGLQueue=[];
+    });
+  });
+}
+/* 检测 echarts-gl globe 是否真正可用（检查 WebGL canvas，而非 setOption 是否报错） */
+function globeSupportOK(){
+  if(typeof echarts==='undefined'||typeof echarts.init!=='function') return false;
+  if(!webglOK()) return false;
+  var testEl=null;
+  try{
+    testEl=document.createElement('div');
+    testEl.style.cssText='width:20px;height:20px;position:absolute;left:-9999px;top:-9999px;';
+    document.body.appendChild(testEl);
+    var tc=echarts.init(testEl);
+    tc.setOption({globe:{baseTexture:makeFallbackTexture(),radius:10},series:[]});
+    /* echarts-gl 加载成功时会创建 WebGL canvas；未加载时 echarts 只创建普通 2D canvas */
+    var cv=testEl.querySelector('canvas');
+    var hasWebGL=false;
+    if(cv){
+      try{ hasWebGL=!!(cv.getContext('webgl')||cv.getContext('experimental-webgl')); }catch(e){}
+    }
+    tc.dispose();
+    if(testEl.parentNode) document.body.removeChild(testEl);
+    return hasWebGL;
+  }catch(e){
+    if(testEl&&testEl.parentNode) document.body.removeChild(testEl);
+    return false;
+  }
+}
 function initTravelEarth(){
   if(travelBreathTimer){ clearInterval(travelBreathTimer); travelBreathTimer=null; }
   if(travelChart){ try{ travelChart.dispose(); }catch(e){} travelChart=null; }
-  const el=document.getElementById('travelMap'); if(!el) return;
-  const cities=travelCitiesAgg();
-  const empty=document.getElementById('travelEmpty');
-  if(empty) empty.style.display = cities.length? 'none':'flex';
-  // 若 echarts 尚未加载（defer 脚本可能晚于路由），等待后重试
-  if(typeof echarts==='undefined' || typeof echarts.init!=='function'){
-    const r=(parseInt(el.dataset.retry||'0',10))+1; el.dataset.retry=String(r);
-    if(r<=25){ setTimeout(initTravelEarth, 160); return; }
-    travelRender2D(el,cities); return;
-  }
+  var el=document.getElementById('travelMap'); if(!el) return;
+  var cities=travelCitiesAgg();
+  var emptyEl=document.getElementById('travelEmpty');
+  if(emptyEl) emptyEl.style.display = cities.length? 'none':'flex';
+  /* 显示加载中 */
   el.className='travel-map3d';
-  // 无 WebGL 直接 2D
-  if(!webglOK()){ travelRender2D(el,cities); return; }
-  // 用隐藏测试容器验证 echarts-gl 是否真正支持 globe
-  let testEl=null;
-  try{
-    testEl=document.createElement('div'); testEl.style.cssText='width:10px;height:10px;position:absolute;left:-9999px;';
-    document.body.appendChild(testEl);
-    const testChart=echarts.init(testEl);
-    testChart.setOption({globe:{baseTexture:makeFallbackTexture(),radius:10},series:[]});
-    testChart.dispose(); document.body.removeChild(testEl);
-  }catch(e){
-    if(testEl && testEl.parentNode) document.body.removeChild(testEl);
-    travelRender2D(el,cities); return;
-  }
-  let chart;
+  el.innerHTML='<div class="travel-map-loading"><div class="tml-spinner"></div><div>\u{1F30D} 正在加载3D地球\u2026</div></div>';
+  /* 动态加载 echarts + echarts-gl（多 CDN 回退） */
+  loadEchartsGL(function(ok){
+    if(!ok){
+      /* 全部 CDN 加载失败 → 友好提示 + 2D 降级 */
+      el.innerHTML='<div class="travel-map-error"><div class="tme-icon">\u{1F615}</div><div>3D\u5730\u7403\u52A0\u8F7D\u5931\u8D25</div><div style="font-size:12px;opacity:.7">\u5DF2\u5207\u6362\u52302D\u5730\u56FE\u6A21\u5F0F</div></div>';
+      setTimeout(function(){ travelRender2D(el,cities); }, 600);
+      return;
+    }
+    if(!webglOK()){
+      /* 无 WebGL 支持 → 2D 降级 */
+      travelRender2D(el,cities); return;
+    }
+    if(!globeSupportOK()){
+      /* echarts-gl 未正确加载或 globe 不可用 → 2D 降级 */
+      travelRender2D(el,cities); return;
+    }
+    renderTravelGlobe(el,cities);
+  });
+}
+function renderTravelGlobe(el,cities){
+  el.className='travel-map3d';
+  el.innerHTML='';
+  var chart;
   try{
     chart=echarts.init(el);
     travelChart=chart;
   }catch(e){ travelRender2D(el,cities); return; }
-  const ordered=cities.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  const latest=ordered.length? ordered[ordered.length-1]:null;
-  const normalPts=ordered.filter(c=>c!==latest).map(c=>({name:c.name, value:[c.coord[0],c.coord[1]]}));
-  const latestPts=latest? [{name:latest.name, value:[latest.coord[0],latest.coord[1]]}] : [];
-  const lineData=[], distData=[];
+  var ordered=cities.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  var latest=ordered.length? ordered[ordered.length-1]:null;
+  var normalPts=ordered.filter(c=>c!==latest).map(c=>({name:c.name, value:[c.coord[0],c.coord[1]]}));
+  var latestPts=latest? [{name:latest.name, value:[latest.coord[0],latest.coord[1]]}] : [];
+  var lineData=[], distData=[];
   for(let i=0;i<ordered.length-1;i++){
     const a=ordered[i], b=ordered[i+1];
     lineData.push({coords:[[a.coord[0],a.coord[1]],[b.coord[0],b.coord[1]]]});
@@ -4547,7 +4625,7 @@ function initTravelEarth(){
     const mlng=(a.coord[0]+b.coord[0])/2, mlat=(a.coord[1]+b.coord[1])/2;
     distData.push({name:'+'+d+'km', value:[mlng,mlat,0.3]});
   }
-  const globeOpt={
+  var globeOpt={
     backgroundColor:'transparent',
     globe:{
       baseTexture: makeFallbackTexture(),
@@ -4579,13 +4657,15 @@ function initTravelEarth(){
   try{
     chart.setOption(globeOpt);
   }catch(e){ travelRender2D(el,cities); return; }
-  // 4 秒后若 chart 仍空白，降级 2D
+  /* 6 秒后检测地球是否真正渲染（canvas 尺寸 + 像素检测） */
   setTimeout(()=>{
     if(travelChart!==chart) return;
-    const cv=el.querySelector('canvas');
+    var cv=el.querySelector('canvas');
     if(!cv || cv.width<10 || cv.height<10){ travelRender2D(el,cities); return; }
-  }, 4000);
+  }, 6000);
+  /* 异步加载卫星纹理贴图 */
   loadSatTexture(img=>{ if(img && travelChart===chart) chart.setOption({globe:{baseTexture:img}}); });
+  /* 最新城市呼吸动画 */
   if(latest){
     let t=0;
     travelBreathTimer=setInterval(()=>{
@@ -4594,6 +4674,7 @@ function initTravelEarth(){
       chart.setOption({series:[{id:'lt', symbolSize:ss}]});
     },400);
   }
+  /* 点击城市弹出信息卡 */
   chart.on('click', p=>{
     if(p.seriesType==='scatter3D' && (p.seriesName==='cities'||p.seriesName==='latest')){
       showCityInfo(p.name, p.event?p.event.offsetX:null, p.event?p.event.offsetY:null);

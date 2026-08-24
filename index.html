@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260823g';
+  var WB_VER='20260824a';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -697,6 +697,43 @@
 .wi-name{font-size:12px;font-weight:600;margin-top:5px;line-height:1.3}
 .wi-sub{font-size:11px;color:var(--ink-soft)}
 .ward-add-card{flex:0 0 auto;width:108px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed var(--line);border-radius:14px;color:var(--ink-soft);font-size:12px;cursor:pointer;background:#fffdf9;min-height:140px}
+/* 衣橱：手动滑动搭配（20260824 重构） */
+.wd-cols{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.wd-cols::-webkit-scrollbar{display:none}
+.wd-col{flex:1 1 0;min-width:82px;max-width:120px;display:flex;flex-direction:column;align-items:center}
+.wd-col-h{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.wd-col-track{position:relative;width:100%;height:38vh;max-height:340px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;scrollbar-width:none}
+.wd-col-track::-webkit-scrollbar{display:none}
+.wd-col-item{scroll-snap-align:center;background:#fff7fa;border:2px solid transparent;border-radius:12px;padding:6px;margin:6px 2px;text-align:center;cursor:pointer;transition:border-color .15s,transform .15s}
+.wd-col-item img{width:100%;height:84px;border-radius:8px;object-fit:cover;background:#f3ede0;display:block}
+.wd-col-item .ph{width:100%;height:84px;border-radius:8px;background:#f3ede0;display:flex;align-items:center;justify-content:center;font-size:28px}
+.wd-col-n{font-size:11px;margin-top:4px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-col-item.on{border-color:var(--kitty-red);box-shadow:0 0 0 3px rgba(232,72,92,.15);transform:scale(1.04)}
+.wd-col-add{flex:none;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed var(--line);border-radius:12px;color:var(--ink-soft);font-size:12px;margin:6px 2px;min-height:96px;cursor:pointer;background:#fffdf9}
+.wd-col-foot{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px}
+.wd-col-step{width:26px;height:26px;border-radius:50%;border:none;background:var(--kitty-pink-soft);color:var(--kitty-red);font-size:12px;font-weight:800;cursor:pointer}
+.wd-col-idx{font-size:11px;color:var(--ink-soft);min-width:34px;text-align:center}
+.fit-empty{text-align:center;color:var(--ink-soft);font-size:14px;padding:30px 10px;line-height:1.7}
+.fit-head-layer{top:0;left:51px;width:48px;height:48px}
+.wd-actions{display:flex;gap:10px;margin:6px 0 10px}
+.wd-actions .btn{flex:1}
+.wd-saved-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.wd-saved-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;padding:8px;cursor:pointer}
+.wd-saved-thumb{display:flex;gap:3px;height:84px;border-radius:10px;overflow:hidden;background:#fff3f7;padding:4px}
+.wd-saved-thumb img{width:50%;height:100%;object-fit:cover;border-radius:6px}
+.wd-saved-thumb .wd-saved-ph{flex:1;display:flex;align-items:center;justify-content:center;font-size:28px}
+.wd-saved-name{font-size:13px;font-weight:700;margin:6px 2px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd-saved-occ{display:flex;flex-wrap:wrap;gap:4px;margin:0 2px 4px}
+.wd-saved-del{position:absolute;top:6px;right:6px;background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:10px;font-size:11px;padding:2px 8px;color:var(--kitty-red);cursor:pointer}
+.wd-saved-edit{position:absolute;top:6px;left:6px;background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:10px;font-size:12px;padding:1px 7px;color:var(--ink-soft);cursor:pointer}
+.wd-savebox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.wd-save-name{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:14px;margin-bottom:8px;outline:none;font-family:inherit}
+.wd-save-name:focus{border-color:var(--kitty-red)}
+.wd-save-occ{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.wd-save-occ .chip{margin:0}
+.wd-save-acts{display:flex;gap:8px}
+.wd-save-acts .btn{flex:1}
+@media(max-width:560px){ .wd-col{min-width:72px} .wd-col-track{height:34vh} .wd-col-item img,.wd-col-item .ph{height:72px} }
 
 
 /* ===== 首页 hero（问候 / 大时钟 / 语录） ===== */
@@ -1601,7 +1638,7 @@ const DEF={
       {id:3,name:"黑色西装外套",cat:"top",color:"黑",season:"春秋"},{id:4,name:"直筒牛仔裤",cat:"bottom",color:"蓝",season:"四季"},
       {id:5,name:"灰色半身裙",cat:"bottom",color:"灰",season:"四季"},{id:6,name:"小白鞋",cat:"shoes",color:"白",season:"四季"},
       {id:7,name:"乐福鞋",cat:"shoes",color:"棕",season:"春秋"},
-    ], worn:{top:null,bottom:null,shoes:null}, outfits:[]
+    ], worn:{top:null,bottom:null,shoes:null,coat:null,acc:null}, outfits:[], savedOutfits:[]
   },
   makeup:[{t:"通勤伪素颜：隔离+眉粉+豆沙色口红",cat:"妆容"},{t:"元气约会妆：橘调腮红+卷翘睫毛",cat:"妆容"},{t:"清透运动妆：防晒+定妆+润唇",cat:"妆容"},{t:"消肿急救：冰勺敷眼+高光提亮",cat:"妆容"},{t:"氛围感唇妆：咬唇画法",cat:"妆容"},{t:"锁骨发：显脸小又好打理",cat:"发型"},{t:"高颅顶披发：氛围感拉满",cat:"发型"},{t:"低丸子头：通勤清爽",cat:"发型"}],
   recipe:[
@@ -3732,39 +3769,137 @@ function wardClosetRender(){
   return wdStats()+`<div class="chips" style="margin:8px 0">${catTabs}</div>`+grid+wardAddForm();
 }
 function wardFavTab(){
-  const fs=wdFavs(); if(!fs.length) return '<div class="u-empty"><div class="e">❤️</div><div class="t">还没有收藏的搭配，去「今日搭配」收藏一套吧</div></div>';
-  return '<div class="wd-hist">'+fs.map(f=>{
-    const w=wardData();
-    const items=(f.items||[]).map(id=>w.items.find(x=>x.id===id)).filter(Boolean);
-    const thumb=items.map(it=>it.img?`<img src="${it.img}" style="width:36px;height:36px;border-radius:6px;object-fit:cover">`:`<span style="font-size:22px">${catIcon(it.cat)}</span>`).join('');
-    return `<div class="wd-hist-item" style="align-items:center">
-      <div style="display:flex;gap:4px;flex:none">${thumb}</div>
-      <div style="flex:1;min-width:0;margin-left:8px">
-        <div class="wd-hist-names" style="margin:0">${esc(f.name)}</div>
-        <div style="font-size:11px;color:var(--ink-soft)">${f.occasion||''} · ${f.date}</div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-soft" style="padding:4px 10px;font-size:12px" onclick="wdApplyFav(${f.id})">穿上</button>
-        <button class="btn" style="padding:4px 10px;font-size:12px;background:#fff0f3;color:var(--kitty-red)" onclick="wdDelFav(${f.id})">删除</button>
-      </div>
+  const w=wardData(); const list=(w.savedOutfits||[]);
+  if(!list.length) return '<div class="u-empty"><div class="e">💖</div><div class="t">还没有保存的搭配，去搭配一套吧 ✨</div></div>';
+  return '<div class="wd-saved-grid">'+list.map(o=>{
+    const items=WCATS.map(c=>o.items&&o.items[c.key]).filter(Boolean).map(id=>w.items.find(x=>x.id===id)).filter(Boolean);
+    const thumb=items.slice(0,4).map(it=> it.img?`<img src="${it.img}">`:`<span class="wd-saved-ph">${catIcon(it.cat)}</span>`).join('');
+    const occ=(o.occasion||[]).map(t=>`<span class="tagpill">${esc(t)}</span>`).join('');
+    return `<div class="wd-saved-card" onclick="wdOpenSaved(${o.id})">
+      <div class="wd-saved-thumb">${thumb||'<span class="wd-saved-ph">👗</span>'}</div>
+      <div class="wd-saved-name">${esc(o.name||'搭配')}</div>
+      <div class="wd-saved-occ">${occ}</div>
+      <button class="wd-saved-edit" onclick="event.stopPropagation();wdRenameSaved(${o.id})">✎</button>
+      <button class="wd-saved-del" onclick="event.stopPropagation();wdDelSaved(${o.id})">删除</button>
     </div>`;
   }).join('')+'</div>';
 }
-function wdCalendarTab(){
-  const w=wardData(); const hs=(w.outfits||[]).slice().reverse();
-  if(!hs.length) return '<div class="u-empty"><div class="e">📅</div><div class="t">还没有穿搭记录</div></div>';
-  const days=['日','一','二','三','四','五','六'];
-  const groups={}; hs.forEach(h=>{ groups[h.date]=groups[h.date]||[]; groups[h.date].push(h); });
-  return '<div class="wd-cal">'+Object.keys(groups).sort().reverse().map(d=>{
-    const date=new Date(d+'T00:00:00'); const label=(date.getMonth()+1)+'/'+date.getDate()+' 周'+days[date.getDay()];
-    const outfits=groups[d].map(o=>{
-      const names=o.items.map(id=>{const it=w.items.find(x=>x.id===id);return it?it.name:''}).filter(Boolean).join(' + ');
-      return `<div class="wd-cal-item">${names}</div>`;
-    }).join('');
-    return `<div class="wd-cal-day"><div class="wd-cal-date">${label}</div>${outfits}</div>`;
-  }).join('')+'</div>';
+function wdDelSaved(id){ if(!confirm('删除这套搭配？')) return; const w=wardData(); w.savedOutfits=(w.savedOutfits||[]).filter(x=>x.id!==id); DB.set('wardrobe',w); setRoute('wardrobe'); }
+function wdRenameSaved(id){ const w=wardData(); const o=(w.savedOutfits||[]).find(x=>x.id===id); if(!o) return; const n=prompt('给搭配改个名字：',o.name||''); if(n===null) return; o.name=n.trim()||o.name; DB.set('wardrobe',w); setRoute('wardrobe'); }
+function wdOpenSaved(id){ const w=wardData(); const o=(w.savedOutfits||[]).find(x=>x.id===id); if(!o) return; w.worn=w.worn||{}; WCATS.forEach(c=>{ w.worn[c.key]= o.items&&o.items[c.key]?o.items[c.key]:null; }); DB.set('wardrobe',w); wdTab='outfit'; setRoute('wardrobe'); setTimeout(()=>alert('已载入搭配「'+o.name+'」，可调滑动重新搭配；改完点「保存搭配」可另存新搭配～'),150); }
+/* 日历 tab 已移除（20260824）：穿搭历史改为按需按日期列表展示 */
+let wdSaveOcc=['休闲'];
+function wardManualTab(){
+  wdSaveOcc=['休闲'];
+  const w=wardData(); const all=w.items||[];
+  WCATS.forEach(c=>{ const l=(w.items||[]).filter(x=>x.cat===c.key); if(l.length && !(w.worn&&w.worn[c.key])){ w.worn=w.worn||{}; w.worn[c.key]=l[0].id; DB.set('wardrobe',w); } });
+  const cols=WCATS.filter(c=> all.some(x=>x.cat===c.key));
+  const hasAny=all.length>0;
+  const worn=w.worn||{};
+  let preview = hasAny
+    ? `<div class="fit-preview"><div class="fit-body" id="wdFitBody">${wdFitLayers(worn)}</div><div class="fit-tip">点预览里的衣物可放大看同款 👀</div></div>`
+    : `<div class="fit-preview"><div class="fit-empty">先添加几件衣物，来搭配一套吧 👗<br><button class="btn btn-pink" style="margin-top:12px" onclick="wdTab='closet';setRoute('wardrobe')">＋ 添加衣物</button></div></div>`;
+  let colsHtml='';
+  if(hasAny){
+    colsHtml='<div class="wd-cols">'+cols.map(c=>{
+      const list=all.filter(x=>x.cat===c.key);
+      const sel=worn[c.key]; const idx=list.findIndex(x=>x.id===sel);
+      const items=list.map(it=>`<div class="wd-col-item ${sel===it.id?'on':''}" id="wdItem_${c.key}_${it.id}" data-id="${it.id}" onclick="wdSelectCat('${c.key}',${it.id})">
+        ${it.img?`<img src="${it.img}" onclick="event.stopPropagation();wdOpenCat('${c.key}',${it.id})">`:`<div class="ph">${c.ic}</div>`}
+        <div class="wd-col-n">${esc(it.name)}</div>
+      </div>`).join('');
+      return `<div class="wd-col">
+        <div class="wd-col-h">${c.ic} ${c.label}</div>
+        <div class="wd-col-track" id="wdTrack_${c.key}" onscroll="wdColScroll('${c.key}')">${items}
+          <div class="wd-col-add" onclick="wdGoAdd('${c.key}')">＋<br>添加</div>
+        </div>
+        <div class="wd-col-foot">
+          <button class="wd-col-step" onclick="wdColStep('${c.key}',-1)">▲</button>
+          <span class="wd-col-idx" id="wdIdx_${c.key}">${idx>=0?(idx+1):1}/${list.length}</span>
+          <button class="wd-col-step" onclick="wdColStep('${c.key}',1)">▼</button>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+  const saveBox=`<div class="wd-savebox" id="wdSaveBox" style="display:none">
+    <input id="wdSaveName" class="wd-save-name" placeholder="搭配名称（选填）">
+    <div class="wd-save-occ">${WD_OCCASIONS.map(o=>`<button type="button" class="chip wd-occ ${wdSaveOcc.indexOf(o)>=0?'on':''}" onclick="wdToggleOcc('${o}')">${o}</button>`).join('')}</div>
+    <div class="wd-save-acts"><button class="btn btn-soft" onclick="wdToggleSave(false)">取消</button><button class="btn btn-pink" onclick="wdDoSave()">保存</button></div>
+  </div>`;
+  setTimeout(()=>wdInitCols(),30);
+  return preview+colsHtml+`<div class="wd-actions">
+    <button class="btn btn-pink" onclick="wdRandomOutfit()">🎲 随机一套</button>
+    <button class="btn btn-soft" onclick="wdToggleSave(true)">✅ 保存搭配</button>
+  </div>`+saveBox;
 }
-function wardOutfitTab(){ return wardRecRender()+'<div class="wd-sub">穿搭历史</div>'+wardRepeatWarn()+wardHistRender(); }
+function wdFitLayers(worn){
+  const w=wardData(); const get=id=>w.items.find(x=>x.id===id);
+  const zone={top:'fit-top',coat:'fit-top',bottom:'fit-bottom',shoes:'fit-shoe',acc:'fit-head-layer'};
+  let s='<div class="fit-sil fit-head"></div><div class="fit-sil fit-torso"></div><div class="fit-sil fit-legL"></div><div class="fit-sil fit-legR"></div><div class="fit-sil fit-footL"></div><div class="fit-sil fit-footR"></div>';
+  WCATS.forEach(c=>{ const id=worn[c.key]; if(!id) return; const it=get(id); if(!it) return;
+    const img= it.img?`<img src="${it.img}" onclick="wdOpenCat('${c.key}',${it.id})">`:`<div class="ph">${c.ic}</div>`;
+    s+=`<div class="fit-layer ${zone[c.key]}" onclick="wdOpenCat('${c.key}',${it.id})">${img}</div>`; });
+  return s;
+}
+function wdUpdatePreview(){ const el=document.getElementById('wdFitBody'); if(el) el.innerHTML=wdFitLayers(wardData().worn||{}); }
+function wdApplySel(cat,id){
+  const w=wardData(); w.worn=w.worn||{}; w.worn[cat]=id;
+  const it=w.items.find(x=>x.id===id); if(it) it.lastWorn=keyDate;
+  DB.set('wardrobe',w); wdUpdatePreview();
+  const list=(w.items||[]).filter(x=>x.cat===cat); const idx=list.findIndex(x=>x.id===id);
+  const foot=document.getElementById('wdIdx_'+cat); if(foot) foot.textContent=(idx>=0?idx+1:1)+'/'+list.length;
+}
+function wdSelectCat(cat,id){ const track=document.getElementById('wdTrack_'+cat); const el=document.getElementById('wdItem_'+cat+'_'+id); if(track&&el) track.scrollTo({top: el.offsetTop-(track.clientHeight/2)+el.clientHeight/2, behavior:'smooth'}); }
+function wdColScroll(cat){ clearTimeout(window._wdScrollT); window._wdScrollT=setTimeout(()=>wdSnapCenter(cat),130); }
+function wdSnapCenter(cat){
+  const track=document.getElementById('wdTrack_'+cat); if(!track) return;
+  const items=[...track.querySelectorAll('.wd-col-item')]; if(!items.length) return;
+  const tr=track.getBoundingClientRect(); const center=tr.top+tr.height/2;
+  let best=items[0],bestD=1e9;
+  items.forEach(it=>{ const r=it.getBoundingClientRect(); const d=Math.abs((r.top+r.height/2)-center); if(d<bestD){bestD=d;best=it;} });
+  const id=Number(best.dataset.id); items.forEach(it=>it.classList.toggle('on', it===best)); wdApplySel(cat,id);
+}
+function wdColStep(cat,dir){
+  const w=wardData(); const list=(w.items||[]).filter(x=>x.cat===cat); if(!list.length) return;
+  let i=list.findIndex(x=>x.id===w.worn[cat]); if(i<0)i=0; i=Math.max(0,Math.min(list.length-1,i+dir));
+  const id=list[i].id; w.worn[cat]=id; DB.set('wardrobe',w);
+  const track=document.getElementById('wdTrack_'+cat); const el=document.getElementById('wdItem_'+cat+'_'+id);
+  if(track&&el) track.scrollTo({top: el.offsetTop-(track.clientHeight/2)+el.clientHeight/2, behavior:'smooth'});
+  if(track){ [...track.querySelectorAll('.wd-col-item')].forEach(it=>it.classList.toggle('on', Number(it.dataset.id)===id)); }
+  wdApplySel(cat,id);
+}
+function wdInitCols(){
+  const w=wardData();
+  WCATS.forEach(c=>{ const track=document.getElementById('wdTrack_'+c.key); if(!track) return;
+    const sel=w.worn&&w.worn[c.key]; const list=(w.items||[]).filter(x=>x.cat===c.key); const i=list.findIndex(x=>x.id===sel);
+    const el=i>=0?document.getElementById('wdItem_'+c.key+'_'+list[i].id):track.querySelector('.wd-col-item');
+    if(el) track.scrollTop=el.offsetTop-(track.clientHeight/2)+el.clientHeight/2; });
+}
+function wdGoAdd(cat){ wdTab='closet'; setRoute('wardrobe'); setTimeout(()=>{ const se=document.getElementById('wd_cat'); if(se) se.value=cat; const n=document.getElementById('wd_name'); if(n) n.focus(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); },80); }
+function wdRandomOutfit(){
+  const w=wardData(); const tw=DB.get('wardWeather',null); const t=tw?tw.temp:20;
+  const byCat={}; (w.items||[]).forEach(x=>{(byCat[x.cat]=byCat[x.cat]||[]).push(x);});
+  w.worn=w.worn||{};
+  WCATS.forEach(c=>{ let l=byCat[c.key]||[]; if(!l.length){w.worn[c.key]=null;return;} if(wdWeatherFilter&&t<12) l=l.filter(x=>!/短袖|吊带|无袖|裙/.test(x.name)); if(!l.length) l=byCat[c.key]||[]; const it=l[Math.floor(Math.random()*l.length)]; w.worn[c.key]=it.id; it.lastWorn=keyDate; });
+  DB.set('wardrobe',w); wdUpdatePreview();
+  WCATS.forEach(c=>{ const track=document.getElementById('wdTrack_'+c.key); if(!track) return; const id=w.worn[c.key]; if(!id) return;
+    const el=document.getElementById('wdItem_'+c.key+'_'+id); if(el) track.scrollTo({top: el.offsetTop-(track.clientHeight/2)+el.clientHeight/2, behavior:'smooth'});
+    const items=[...track.querySelectorAll('.wd-col-item')]; items.forEach(it=>it.classList.toggle('on', Number(it.dataset.id)===id));
+    const list=(w.items||[]).filter(x=>x.cat===c.key); const idx=list.findIndex(x=>x.id===id); const foot=document.getElementById('wdIdx_'+c.key); if(foot) foot.textContent=(idx>=0?idx+1:1)+'/'+list.length; });
+}
+function wdToggleSave(show){ wdSaveOcc=['休闲']; const box=document.getElementById('wdSaveBox'); if(!box) return; box.style.display=show?'block':'none';
+  if(show){ const nm=document.getElementById('wdSaveName'); if(nm) nm.value=''; const occBtns=box.querySelectorAll('.wd-occ'); occBtns.forEach(b=>b.classList.toggle('on', b.textContent==='休闲')); } }
+function wdToggleOcc(o){ if(!wdSaveOcc) wdSaveOcc=[]; if(wdSaveOcc.indexOf(o)>=0) wdSaveOcc=wdSaveOcc.filter(x=>x!==o); else wdSaveOcc.push(o); if(!wdSaveOcc.length) wdSaveOcc=['休闲'];
+  const box=document.getElementById('wdSaveBox'); if(box) box.querySelectorAll('.wd-occ').forEach(b=>b.classList.toggle('on', wdSaveOcc.indexOf(b.textContent)>=0)); }
+function wdDoSave(){
+  const w=wardData(); w.savedOutfits=w.savedOutfits||[];
+  const items={}; WCATS.forEach(c=> items[c.key]=(w.worn&&w.worn[c.key])?w.worn[c.key]:null);
+  if(!Object.values(items).some(Boolean)){ alert('先选几件衣物再保存哦～'); return; }
+  const nmI=document.getElementById('wdSaveName'); const name=nmI?nmI.value.trim():'';
+  const num=w.savedOutfits.length+1; const nm=name?name:('搭配 #'+num); const occ=wdSaveOcc&&wdSaveOcc.length?wdSaveOcc.slice():['休闲'];
+  w.savedOutfits.unshift({id:Date.now(), name:nm, occasion:occ, items:items, date:keyDate}); DB.set('wardrobe',w); wdTab='fav'; setRoute('wardrobe');
+}
+function wdOpenCat(cat,id){ const w=wardData(); const list=(w.items||[]).filter(x=>x.cat===cat && x.img); const imgs=list.map(x=>x.img); let i=list.findIndex(x=>x.id===id); if(i<0)i=0; if(!imgs.length) return; openImagePreview(imgs,i); }
 function viewWardrobe(){
   const lw=DB.get("wardWeather",null); const city=DB.get("wardCity","");
   const wbox=lw?renderWeatherBox(lw.city,lw.temp,lw.code):`<div class="weather-temp">--°</div><div class="weather-info"><div id="wCity">${city||'设置城市'}</div><div id="wDesc">点下面获取实时天气</div></div><div class="weather-tip" id="wTip">根据温度，给你合适的穿搭建议～</div>`;
@@ -3777,8 +3912,8 @@ function viewWardrobe(){
       </div>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6a5a60;margin:8px 0 4px"><input type="checkbox" ${wdWeatherFilter?'checked':''} onchange="wdWeatherFilter=this.checked;setRoute('wardrobe')"> 随机时按天气过滤</label>
     </div>
-    <div class="wd-tabs"><button class="wd-tab ${wdTab==='outfit'?'on':''}" onclick="wdTab='outfit';setRoute('wardrobe')">🎀 今日搭配</button><button class="wd-tab ${wdTab==='closet'?'on':''}" onclick="wdTab='closet';setRoute('wardrobe')">👚 我的衣橱</button><button class="wd-tab ${wdTab==='fav'?'on':''}" onclick="wdTab='fav';setRoute('wardrobe')">❤️ 我的搭配</button><button class="wd-tab ${wdTab==='cal'?'on':''}" onclick="wdTab='cal';setRoute('wardrobe')">📅 日历</button></div>
-    ${wdTab==='outfit'?wardOutfitTab():(wdTab==='fav'?wardFavTab():(wdTab==='cal'?wdCalendarTab():wardClosetRender()))}
+    <div class="wd-tabs"><button class="wd-tab ${wdTab==='outfit'?'on':''}" onclick="wdTab='outfit';setRoute('wardrobe')">🎀 今日搭配</button><button class="wd-tab ${wdTab==='closet'?'on':''}" onclick="wdTab='closet';setRoute('wardrobe')">👚 我的衣橱</button><button class="wd-tab ${wdTab==='fav'?'on':''}" onclick="wdTab='fav';setRoute('wardrobe')">💖 我的搭配</button></div>
+    ${wdTab==='outfit'?wardManualTab():(wdTab==='fav'?wardFavTab():wardClosetRender())}
   `;
 }
 const WCODE={0:["晴",""],1:["大致晴朗",""],2:["局部多云",""],3:["阴",""],45:["雾",""],48:["雾凇",""],51:["毛毛雨",""],53:["小雨",""],55:["中雨",""],61:["小雨",""],63:["中雨",""],65:["大雨",""],71:["小雪",""],73:["中雪",""],75:["大雪",""],80:["阵雨",""],81:["阵雨",""],82:["强阵雨",""],85:["阵雪",""],95:["雷阵雨",""],96:["雷阵雨伴冰雹",""]};
@@ -3815,7 +3950,7 @@ async function fetchWeather(){
 const WCATS=[{key:"top",label:"上装",ic:"👚"},{key:"bottom",label:"下装",ic:"👖"},{key:"shoes",label:"鞋子",ic:"👟"},{key:"coat",label:"外套",ic:"🧥"},{key:"acc",label:"配饰",ic:"🎀"}];
 let wardSeason='全部';
 function wardData(){ return DB.get("wardrobe",DEF.wardrobe); }
-function catIcon(cat){return cat==='top'?'👚':cat==='bottom'?'👖':'👟';}
+function catIcon(cat){return cat==='top'?'👚':cat==='bottom'?'👖':cat==='shoes'?'👟':cat==='coat'?'🧥':cat==='acc'?'🎀':'👗';}
 function readImg(file,cb){
   const r=new FileReader();
   r.onload=e=>{ const img=new Image();

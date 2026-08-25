@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260827d';
+  var WB_VER='20260827e';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -2325,6 +2325,9 @@ function viewSettings(){
       <p style="font-size:11px;color:var(--ink-soft);margin:6px 0 0">${warn?'⚠️ 已接近上限，建议清理图片或导出备份':'✅ 容量正常'}</p>
       <details style="margin-top:8px"><summary style="font-size:11px;color:var(--ink-soft);cursor:pointer">查看各模块大小</summary><div style="margin-top:6px">${sizeRows}</div></details>
     </div>
+    <div class="add" style="display:block;margin-bottom:12px">
+      <button class="btn btn-pink" id="compressBtn" style="width:100%" onclick="compressAllPicsUI()">🗜️ 一键压缩所有图片（省云端空间）</button>
+    </div>
     <div class="form-row"><label>我的同步码</label>
       <div style="display:flex;gap:8px;flex:1;min-width:0">
         <input id="syncCode" value="${esc(syncCode())}" style="flex:1;min-width:0">
@@ -4151,6 +4154,65 @@ function readImgC(file,cb){
     img.src=e.target.result; };
   r.onerror=()=>{ cb(''); };
   r.readAsDataURL(file);
+}
+/* 从已存储的 base64 字符串重新压缩（一键压缩所有图片功能用）。
+   统一转 JPEG 0.7、最长边 1000px，比上传时的 800px/0.72 略狠，专门用来省云端空间；
+   若压缩后反而更大则保留原图。 */
+function compressB64(b64){
+  return new Promise(resolve=>{
+    if(typeof b64!=='string' || !b64.startsWith('data:image')){ resolve(b64); return; }
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height,max=1000;
+      if(w>max||h>max){ const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s); }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      const ctx=c.getContext('2d');
+      ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);  /* 白底，避免 PNG 透明转 JPEG 后变黑 */
+      ctx.drawImage(img,0,0,w,h);
+      try{ resolve(c.toDataURL('image/jpeg',0.7)); }catch(e){ resolve(b64); }
+    };
+    img.onerror=()=>resolve(b64);
+    img.src=b64;
+  });
+}
+/* 深度遍历任意对象/数组，把所有 data:image 字符串重新压缩一遍；返回 {count, saved} */
+async function compressAllPics(){
+  let count=0, saved=0;
+  const walk=async (o)=>{
+    if(typeof o==='string'){
+      if(o.startsWith('data:image')){
+        const out=await compressB64(o);
+        if(out.length < o.length){ count++; saved += (o.length-out.length); return out; }
+        return o;
+      }
+      return o;
+    }
+    if(o && typeof o==='object'){
+      for(const k in o){ o[k]=await walk(o[k]); }
+      return o;
+    }
+    return o;
+  };
+  const d=DB.all(); await walk(d); DB.save();
+  const g=goodsLog(); await walk(g); setGoodsLog(g);
+  const b=bodyLog(); await walk(b); setBodyLog(b);
+  const m=moodLog(); await walk(m); setMoodLog(m);
+  const l=ledgerLog(); await walk(l); setLedgerLog(l);
+  return {count, saved};
+}
+async function compressAllPicsUI(){
+  if(typeof confirm==='function' && !confirm('确定压缩所有图片吗？\n会省下不少云端空间，图片清晰度会略降（日常够用）。')) return;
+  const btn=document.getElementById('compressBtn');
+  const oldTxt=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='压缩中…'; }
+  try{
+    const r=await compressAllPics();
+    const savedKB=(r.saved/1024).toFixed(1);
+    alert('压缩完成！\n共压缩 '+r.count+' 张图片，省下 '+savedKB+' KB 空间。\n已自动保存，记得点「立即同步（上传）」推到云端。');
+    setRoute('settings');  /* 刷新设置页，显示新的占用 */
+    cloudPush();            /* 立即把压缩后的数据上传云端 */
+  }catch(e){ alert('压缩出错：'+(e&&e.message||e)); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent=oldTxt; } }
 }
 function wardInner(){
   const w=wardData(); const worn=w.worn||{};

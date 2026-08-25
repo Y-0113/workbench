@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260827e';
+  var WB_VER='20260827f';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1874,7 +1874,20 @@ function _obf(s){
 }
 /* ---- 云同步后端: textdb.online 免费云存储(GitHub Pages 无后端,改用公共KV服务) ---- */
 const CLOUD_BASE='https://textdb.online/';
-const CLOUD_MAX_CHARS=190000; /* 服务上限20万字符,留安全余量 */
+const CLOUD_MAX_CHARS=700000; /* GitHub 单文件约100万字符上限,这里留安全余量到70万 */
+const TEXTDB_MAX_CHARS=190000; /* textdb.online 免费版上限20万字符(旧后端) */
+/* ===== GitHub 同步后端配置 ===== */
+const GH_OWNER='Y-0113';
+const GH_REPO='workbench';
+const GH_BRANCH='wb-sync';       /* 独立数据分支,不触发 Pages 部署 */
+const GH_PATH='sync.json';        /* 数据文件名 */
+const GH_API='https://api.github.com';
+function ghToken(){ return localStorage.getItem('gh_token')||''; }
+function ghEnabled(){ return localStorage.getItem('gh_enabled')==='1' && !!ghToken(); }
+function syncBackend(){ return ghEnabled() ? 'github' : 'textdb'; }
+/* UTF-8 安全的 base64 编解码(GitHub contents API 要求 base64) */
+function b64enc(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64dec(b64){ try{ return decodeURIComponent(escape(atob(b64))); }catch(e){ return ''; } }
 function cloudKey(c){ return 'xywb-'+String(c||'').trim().toLowerCase(); }
 function _deobf(s){
   try{ const d=atob(s); return d.startsWith(_SYNC_SALT)? d.slice(_SYNC_SALT.length) : s; }catch(e){ return s; }
@@ -1951,6 +1964,10 @@ function applySnapshot(d){
 }
 /* 拉取并按 mtime 合并：不直接覆盖，对每个分区取较新者 */
 async function cloudPull(force,silent){
+  if(syncBackend()==='github'){ return ghPull(force,silent); }
+  return textdbPull(force,silent);
+}
+async function textdbPull(force,silent){
   const code=syncCode();
   try{
     const r=await fetch(CLOUD_BASE+encodeURIComponent(cloudKey(code)),{cache:'no-store'});
@@ -1970,11 +1987,15 @@ async function cloudPull(force,silent){
   }catch(e){ if(!silent) setNet('off'); return false; }
 }
 async function cloudPush(silent){
+  if(syncBackend()==='github'){ return ghPush(silent); }
+  return textdbPush(silent);
+}
+async function textdbPush(silent){
   const code=syncCode();
   try{
     setNet('busy');
     const body=JSON.stringify({payload:snapshot(),updated_at:Math.floor(Date.now()/1000)});
-    if(body.length>CLOUD_MAX_CHARS){ setNet('off','容量预警'); localStorage.setItem('sync_size_warn','1'); if(!silent && !window._sizeWarned){ window._sizeWarned=1; console.warn('云端数据接近上限:',body.length,'/',CLOUD_MAX_CHARS); } return; }
+    if(body.length>TEXTDB_MAX_CHARS){ setNet('off','容量预警'); localStorage.setItem('sync_size_warn','1'); if(!silent && !window._sizeWarned){ window._sizeWarned=1; console.warn('textdb 数据接近上限:',body.length,'/',TEXTDB_MAX_CHARS); } return; }
     const r=await fetch(CLOUD_BASE+'update',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({key:cloudKey(code),value:body})});
     const j=await r.json();
     if(!j.status){ setNet('off'); return; }
@@ -1982,6 +2003,98 @@ async function cloudPush(silent){
     localStorage.setItem('sync_time', new Date().toLocaleString());
     setNet('on');
   }catch(e){ setNet('off'); }
+}
+/* ===== GitHub 同步实现 ===== */
+async function ghHeaders(extra){
+  const h={'Accept':'application/vnd.github+json','User-Agent':'workbench-sync'};
+  const t=ghToken();
+  if(t) h['Authorization']='Bearer '+t;
+  if(extra) Object.assign(h,extra);
+  return h;
+}
+/* 确保独立数据分支 wb-sync 存在(基于 main 的 HEAD 创建一次) */
+async function ghEnsureBranch(){
+  const refUrl=`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/git/ref/heads/${GH_BRANCH}`;
+  const r=await fetch(refUrl,{headers:await ghHeaders()});
+  if(r.ok) return true;  /* 分支已存在 */
+  if(r.status!==404) return false;
+  /* 分支不存在:取 main HEAD 再创建 */
+  const mainR=await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/git/ref/heads/main`,{headers:await ghHeaders()});
+  if(!mainR.ok) return false;
+  const mainSha=(await mainR.json()).object.sha;
+  const cr=await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/git/refs`,{method:'POST',headers:await ghHeaders({'Content-Type':'application/json'}),body:JSON.stringify({ref:`refs/heads/${GH_BRANCH}`,sha:mainSha})});
+  return cr.ok || cr.status===422;  /* 422=已存在 */
+}
+async function ghPush(silent){
+  const token=ghToken();
+  if(!token){ if(!silent) setNet('off','需GitHub Token'); return; }
+  try{
+    setNet('busy');
+    const body=JSON.stringify({payload:snapshot(),updated_at:Math.floor(Date.now()/1000)});
+    if(body.length>CLOUD_MAX_CHARS){ setNet('off','容量预警'); localStorage.setItem('sync_size_warn','1'); if(!silent && !window._sizeWarned){ window._sizeWarned=1; console.warn('GitHub 数据接近上限:',body.length,'/',CLOUD_MAX_CHARS); } return; }
+    const content=b64enc(body);
+    /* 取现有文件 sha(用于更新);分支/文件不存在则先建分支 */
+    let sha=null;
+    const getUrl=`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}?ref=${GH_BRANCH}`;
+    const gr=await fetch(getUrl,{headers:await ghHeaders()});
+    if(gr.ok){ sha=(await gr.json()).sha; }
+    else if(gr.status===404){ await ghEnsureBranch(); }
+    else { setNet('off'); return; }
+    const payload={message:'workbench sync '+new Date().toISOString().slice(0,19),content,branch:GH_BRANCH};
+    if(sha) payload.sha=sha;
+    const pr=await fetch(`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,{method:'PUT',headers:await ghHeaders({'Content-Type':'application/json'}),body:JSON.stringify(payload)});
+    if(!pr.ok){ setNet('off'); return; }
+    localStorage.setItem('sync_local_ts', String(Math.floor(Date.now()/1000)));
+    localStorage.setItem('sync_time', new Date().toLocaleString());
+    setNet('on','已同步 · GitHub');
+  }catch(e){ setNet('off'); }
+}
+async function ghPull(force,silent){
+  const token=ghToken();
+  try{
+    const url=`${GH_API}/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}?ref=${GH_BRANCH}`;
+    const r=await fetch(url,{headers:await ghHeaders(),cache:'no-store'});
+    if(r.status===404){ if(!silent) setNet('on','已连接 · GitHub'); return 'empty'; }
+    if(!r.ok){ if(!silent) setNet('off'); return false; }
+    const j=await r.json();
+    const text=b64dec(j.content||'');
+    if(!text.trim()){ if(!silent) setNet('on','已连接 · GitHub'); return 'empty'; }
+    const d=JSON.parse(text);
+    if(!d || !d.payload){ if(!silent) setNet('on','已连接 · GitHub'); return 'empty'; }
+    const cloudTs=Number(d.updated_at||0);
+    const localTs=Number(localStorage.getItem('sync_local_ts')||0);
+    if(force || localTs===0 || cloudTs>localTs){
+      applySnapshot(d.payload);
+      localStorage.setItem('sync_local_ts', String(Math.max(cloudTs, Math.floor(Date.now()/1000))));
+    }
+    if(!silent) setNet('on','已同步 · GitHub');
+    return true;
+  }catch(e){ if(!silent) setNet('off'); return false; }
+}
+/* 保存并启用 / 停用 GitHub 同步 */
+function ghSave(){
+  const v=(document.getElementById('ghToken').value||'').trim();
+  if(!v){
+    localStorage.removeItem('gh_token');
+    localStorage.setItem('gh_enabled','0');
+    alert('已停用 GitHub 同步，切回旧版云端。');
+    setRoute('settings');
+    return;
+  }
+  localStorage.setItem('gh_token', v);
+  localStorage.setItem('gh_enabled','1');
+  SYNC_READY=false;
+  syncStart();  /* 先从仓库拉取(若无则把本地上传) */
+  alert('GitHub 同步已启用！正在从仓库恢复数据…\n之后所有改动会自动同步到你的 GitHub 仓库。');
+  setRoute('settings');
+}
+async function ghTest(){
+  const v=(document.getElementById('ghToken').value||'').trim();
+  if(!v){ alert('请先填 GitHub 令牌'); return; }
+  localStorage.setItem('gh_token', v);
+  const ok=await ghEnsureBranch();
+  if(ok){ alert('连接成功 ✓\n仓库和分支可用，点「保存并启用」即可。'); }
+  else { alert('连接失败：请检查令牌是否有该仓库的 repo 权限（或用 public_repo）。'); }
 }
 function scheduleSync(){
   if(!SYNC_READY) return;
@@ -2023,11 +2136,7 @@ function copySyncCode(){
 }
 function netStateText(){ const t=document.getElementById('netTxt'); return t?t.textContent:'未连接'; }
 async function syncStart(){
-  const code=syncCode();
   try{
-    const r=await fetch(CLOUD_BASE+encodeURIComponent(cloudKey(code)),{cache:'no-store'});
-    if(!r.ok) throw 0;
-    setNet('on','已连接 · 云端');
     const res=await cloudPull(false);
     if(res==='empty'){ await cloudPush(); }
     SYNC_READY=true;
@@ -2312,12 +2421,25 @@ function viewSettings(){
     </div>
   </div>
   <div class="setting-card">
-    <h3>☁️ 云端自动同步</h3>
+    <h3>🐙 GitHub 同步（推荐）</h3>
+    <p style="font-size:12px;color:var(--ink-soft);margin-bottom:12px">比旧云端更稳：数据存在你自己的 GitHub 仓库，<b>容量大（约 70 万字符，约 3.5 倍）</b>、<b>不会被自动删除</b>。只需填一个 GitHub 访问令牌（只给这台设备用）。</p>
+    <div class="form-row"><label>GitHub 访问令牌 (Token)</label>
+      <input id="ghToken" type="password" placeholder="ghp_ 开头的那串" value="${esc(ghToken())}">
+    </div>
+    <div class="add" style="display:block;gap:10px">
+      <button class="btn ${ghEnabled()?'btn-pink':'btn-soft'}" id="ghSaveBtn" style="flex:1" onclick="ghSave()">${ghEnabled()?'✅ 已启用 · 点此停用':'💾 保存并启用'}</button>
+      <button class="btn btn-soft" style="flex:1" onclick="ghTest()">🔌 测试连接</button>
+    </div>
+    <p style="font-size:11px;color:var(--ink-soft);margin-top:10px">仓库：<b>${GH_OWNER}/${GH_REPO}</b>　分支：<b>${GH_BRANCH}</b>　文件：<b>${GH_PATH}</b>（自动建好，你不用管）</p>
+    <p style="font-size:11px;color:var(--kitty-red);margin-top:6px">⚠️ 令牌明文存在本浏览器（和以前旧云端一样无密码）。建议用「只对该仓库有权限」的令牌；换设备需重新填同一个令牌才能互通。</p>
+  </div>
+  <div class="setting-card">
+    <h3>☁️ 云端自动同步（旧版备用）</h3>
     <p style="font-size:12px;color:var(--ink-soft);margin-bottom:12px">你的数据会<b>自动</b>备份到云端，每次改动都会静默上传。换手机 / 电脑时，在另一台设备打开本工作台、填入<b>同一个同步码</b>，即可一键恢复全部内容，永不丢失。</p>
     <div style="padding:10px 12px;background:${warn?'#fff0f3':'#fff'};border:1px solid ${warn?'var(--kitty-red)':'var(--line)'};border-radius:var(--radius-sm);margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span style="font-size:12px"><b>☁️ 云端占用</b></span>
-        <span style="font-size:12px;color:${warn?'var(--kitty-red)':'var(--ink-soft)'}">${(size.total/1000).toFixed(1)}K / 200K 字符</span>
+        <span style="font-size:12px;color:${warn?'var(--kitty-red)':'var(--ink-soft)'}">${(size.total/1000).toFixed(1)}K / ${Math.round(CLOUD_MAX_CHARS/1000)}K 字符（${syncBackend()==='github'?'GitHub':'云端'}）</span>
       </div>
       <div style="height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden">
         <div style="width:${pct}%;height:100%;background:${pct>=90?'var(--kitty-red)':pct>=70?'#ff9f43':'var(--kitty-pink)'};transition:width .3s"></div>

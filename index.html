@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260827a';
+  var WB_VER='20260827b';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1587,7 +1587,7 @@ async function initLock(){
       // 发现新版本立即接管，避免用户停留在旧页面
       reg.addEventListener('updatefound',()=>{
         const nw=reg.installing;
-        if(nw){ nw.addEventListener('statechange',()=>{ if(nw.state==='activated'){ console.log('工作台已更新'); } }); }
+        if(nw){ nw.addEventListener('statechange',()=>{ if(nw.state==='activated'){ console.log('工作台已更新'); if(!sessionStorage.getItem('wb_sw_refreshed')){ sessionStorage.setItem('wb_sw_refreshed','1'); location.reload(); } } }); }
       });
     }).catch(()=>{});
   }
@@ -2551,7 +2551,7 @@ function tgFit(i){let d=DB.get("fitnessDone",[]);d.includes(i)?d=d.filter(x=>x!=
 function viewEnglish(){
   const streak=DB.get("enStreak",0); const todayDone=DB.get("enToday",false); const d=dialog;
   return `<div class="page-title"><img class="kitty-page-icon" data-img="book" src="" alt=""> 英语学习</div><div class="page-desc">生活口语 · 新概念第一册 · 练习小游戏</div>
-    <div class="word speak-click" data-spk="${escAttr(d.en)}"><div class="en">${esc(d.en)}</div>
+    <div class="word speak-click" data-spk="${escAttr(d.en)}" onclick="speak(this.getAttribute('data-spk'),this,0.9)"><div class="en">${esc(d.en)}</div>
       <div class="cn">${esc(d.cn)}</div>
       <span class="pill">${esc(d.scene)}</span></div>
     <div class="pill">🔥 连续打卡 ${streak} 天</div>
@@ -2598,8 +2598,8 @@ const NCE=[
 function renderNCE(){
   const i=+document.getElementById('nceSel').value; const l=NCE[i]; const done=DB.get("engDone",[]);
   const learned=done.includes(l.lesson);
-  const words=l.words.map(w=>`<div class="nce-w" data-spk="${escAttr(w.en)}"><b>${esc(w.en)}</b><span>${esc(w.cn)}</span></div>`).join('');
-  const sents=l.sent.map(s=>`<div class="nce-s" data-spk="${escAttr(s)}">${esc(s)}</div>`).join('');
+  const words=l.words.map(w=>`<div class="nce-w" data-spk="${escAttr(w.en)}" onclick="speak(this.getAttribute('data-spk'),this,0.9)"><b>${esc(w.en)}</b><span>${esc(w.cn)}</span></div>`).join('');
+  const sents=l.sent.map(s=>`<div class="nce-s" data-spk="${escAttr(s)}" onclick="speak(this.getAttribute('data-spk'),this,0.9)">${esc(s)}</div>`).join('');
   document.getElementById('nceBox').innerHTML=`
     <div class="nce-head">Lesson ${l.lesson} ${learned?'<span class="pill" style="background:#e0f7d6;color:#5a9e3a">已学 ✓</span>':''}
       <button class="wear-btn ${learned?'on':''}" onclick="toggleNCE(${l.lesson})">${learned?'已学':'标记已学'}</button></div>
@@ -2642,22 +2642,24 @@ function showSpkMenu(el){
 }
 function initSpeak(){
   if(_spkInit) return; _spkInit=true;
+  // 捕获阶段优先响应，避免被子元素 onclick 阻止
   document.addEventListener('click',e=>{
-    if(_spkLongFired) return;
+    if(_spkLongFired){ _spkLongFired=false; return; }
     const el=e.target.closest('[data-spk]');
     if(!el) return;
     const txt=el.getAttribute('data-spk');
     if(txt) speak(txt,el,0.9);
-  });
-  let lpTimer=null;
-  document.addEventListener('pointerdown',e=>{
-    const el=e.target.closest('.nce-w'); if(!el) return;
-    lpTimer=setTimeout(()=>{ showSpkMenu(el); },500);
-  },{passive:true});
-  const clearLp=()=>{ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } };
-  document.addEventListener('pointermove',clearLp,{passive:true});
+  },true);
+  // 长按菜单：所有带 data-spk 的元素均支持
+  let lpTimer=null, lpEl=null;
+  const setLp=(el)=>{ lpEl=el; _spkLongFired=false; lpTimer=setTimeout(()=>{ if(lpEl){ showSpkMenu(lpEl); lpEl=null; } },500); };
+  const clearLp=()=>{ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } lpEl=null; };
+  document.addEventListener('pointerdown',e=>{ const el=e.target.closest('[data-spk]'); if(!el){ clearLp(); return; } setLp(el); },{passive:true});
   document.addEventListener('pointerup',clearLp,{passive:true});
   document.addEventListener('pointercancel',clearLp,{passive:true});
+  // touch 兜底（部分移动端 pointer 事件不完整）
+  document.addEventListener('touchstart',e=>{ const el=e.target.closest('[data-spk]'); if(el) setLp(el); },{passive:true});
+  document.addEventListener('touchend',clearLp,{passive:true});
 }
 function engNext(){
   const box=document.getElementById('engGame'); if(!box) return;

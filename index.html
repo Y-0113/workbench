@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260827c';
+  var WB_VER='20260827d';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1909,6 +1909,13 @@ function snapshot(){
     mood: { v:moodLog(), m:moodMtime() }
   };
 }
+function calcSnapshotSize(){
+  const s=snapshot();
+  const parts={};
+  let total=0;
+  for(const k in s){ parts[k]=JSON.stringify(s[k]).length; total+=parts[k]; }
+  return {total,parts};
+}
 /* 兼容旧 payload（直接 {main, body, goods, ledger} 无 v/m 包装） */
 function _wrapPart(p){
   if(p==null) return null;
@@ -1967,7 +1974,7 @@ async function cloudPush(silent){
   try{
     setNet('busy');
     const body=JSON.stringify({payload:snapshot(),updated_at:Math.floor(Date.now()/1000)});
-    if(body.length>CLOUD_MAX_CHARS){ setNet('off'); if(!silent && !window._sizeWarned){ window._sizeWarned=1; alert('数据快到云端容量上限了(20万字符),请在设置里导出备份一份!'); } return; }
+    if(body.length>CLOUD_MAX_CHARS){ setNet('off','容量预警'); localStorage.setItem('sync_size_warn','1'); if(!silent && !window._sizeWarned){ window._sizeWarned=1; console.warn('云端数据接近上限:',body.length,'/',CLOUD_MAX_CHARS); } return; }
     const r=await fetch(CLOUD_BASE+'update',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({key:cloudKey(code),value:body})});
     const j=await r.json();
     if(!j.status){ setNet('off'); return; }
@@ -2237,6 +2244,15 @@ function delLedger(id){ let log=ledgerLog(); log=log.filter(x=>x.id!==id); setLe
 /* ===== settings ===== */
 function viewSettings(){
   const stime=localStorage.getItem('sync_time')||'从未';
+  const size=calcSnapshotSize();
+  const pct=Math.min(100, Math.round(size.total/CLOUD_MAX_CHARS*100));
+  const warn=localStorage.getItem('sync_size_warn')==='1';
+  const sizeRows=Object.keys(size.parts).map(k=>{
+    const n=size.parts[k];
+    const kb=(n/1024).toFixed(1);
+    const name={main:'主数据',body:'体感/护肤',goods:'良品宜物',ledger:'账本',mood:'心情日记'}[k]||k;
+    return `<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0"><span>${name}</span><span style="color:var(--ink-soft)">${kb} KB</span></div>`;
+  }).join('');
   return `
   <div class="page-title">⚙️ 系统设置</div>
   <div class="page-desc">密码、备份、同步都在这里</div>
@@ -2298,6 +2314,17 @@ function viewSettings(){
   <div class="setting-card">
     <h3>☁️ 云端自动同步</h3>
     <p style="font-size:12px;color:var(--ink-soft);margin-bottom:12px">你的数据会<b>自动</b>备份到云端，每次改动都会静默上传。换手机 / 电脑时，在另一台设备打开本工作台、填入<b>同一个同步码</b>，即可一键恢复全部内容，永不丢失。</p>
+    <div style="padding:10px 12px;background:${warn?'#fff0f3':'#fff'};border:1px solid ${warn?'var(--kitty-red)':'var(--line)'};border-radius:var(--radius-sm);margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:12px"><b>☁️ 云端占用</b></span>
+        <span style="font-size:12px;color:${warn?'var(--kitty-red)':'var(--ink-soft)'}">${(size.total/1000).toFixed(1)}K / 200K 字符</span>
+      </div>
+      <div style="height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${pct>=90?'var(--kitty-red)':pct>=70?'#ff9f43':'var(--kitty-pink)'};transition:width .3s"></div>
+      </div>
+      <p style="font-size:11px;color:var(--ink-soft);margin:6px 0 0">${warn?'⚠️ 已接近上限，建议清理图片或导出备份':'✅ 容量正常'}</p>
+      <details style="margin-top:8px"><summary style="font-size:11px;color:var(--ink-soft);cursor:pointer">查看各模块大小</summary><div style="margin-top:6px">${sizeRows}</div></details>
+    </div>
     <div class="form-row"><label>我的同步码</label>
       <div style="display:flex;gap:8px;flex:1;min-width:0">
         <input id="syncCode" value="${esc(syncCode())}" style="flex:1;min-width:0">

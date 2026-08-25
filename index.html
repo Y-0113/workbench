@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260826e';
+  var WB_VER='20260826f';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -343,7 +343,7 @@
   /* ===== 组件样式 ===== */
   .task{display:flex; align-items:center; gap:11px; background:#fff; border:1px solid var(--line);
     border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:9px; cursor:pointer}
-  .task .box{width:24px; height:24px; border-radius:8px; border:2px solid var(--line); flex:none;
+  .task .box{width:24px; height:24px; border-radius:50%; border:2px solid var(--line); flex:none;
     display:flex; align-items:center; justify-content:center; font-size:14px; transition:.15s; background:#fff}
   .task.done .box{background:var(--kitty-red); border-color:var(--kitty-red); color:#fff}
   .task.done .txt{text-decoration:line-through; color:var(--ink-soft)}
@@ -352,6 +352,28 @@
   .add{display:flex; gap:8px; margin-top:6px}
   .add input{flex:1; border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 13px; font-size:14px; outline:none; font-family:inherit}
   .add input:focus{border-color:var(--kitty-red)}
+  .task .txt{flex:1; min-width:0; font-size:14.5px}
+  .task .streak{font-size:11px; color:var(--kitty-red); background:#fff0f3; padding:2px 8px; border-radius:999px; white-space:nowrap; margin-left:2px}
+  .task-act{background:none; border:1px solid var(--line); border-radius:999px; padding:4px 10px; font-size:12px; color:var(--ink-soft); cursor:pointer; white-space:nowrap}
+  .task-act.task-del{color:#e0607d; border-color:#f3c9d3}
+  .task-act:hover{background:#fff0f3}
+  .btn-danger{background:var(--kitty-red); color:#fff; border:none; border-radius:var(--radius-sm); padding:10px 14px; font-size:14px; cursor:pointer}
+  .btn-danger:hover{filter:brightness(.95)}
+  .plan-progress{display:flex; align-items:center; gap:10px; margin:10px 2px 4px}
+  .pp-bar{flex:1; height:9px; background:#f3e3e9; border-radius:999px; overflow:hidden}
+  .pp-fill{height:100%; background:linear-gradient(90deg,#ff9bb0,var(--kitty-red)); border-radius:999px; transition:width .3s}
+  .pp-num{font-size:12.5px; color:var(--ink-soft); white-space:nowrap}
+  .plan-stats{margin-top:14px; background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm); overflow:hidden}
+  .ps-head{padding:12px 14px; font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; cursor:pointer}
+  .ps-arrow{transition:transform .2s; color:var(--ink-soft)}
+  .plan-stats.open .ps-arrow{transform:rotate(90deg)}
+  .ps-body{max-height:0; overflow:hidden; transition:max-height .25s}
+  .plan-stats.open .ps-body{max-height:220px; padding:0 14px 14px}
+  .ps-item{display:flex; flex-direction:column; padding:6px 0}
+  .ps-item b{font-size:18px; color:var(--kitty-red)}
+  .ps-item span{font-size:12px; color:var(--ink-soft)}
+  @media(max-width:560px){ .task{gap:8px} .task-act{padding:3px 8px; font-size:11px} .pp-num{font-size:11.5px} }
+
   .add button{background:var(--kitty-red); color:#fff; border:none; border-radius:var(--radius-sm); padding:0 18px; font-weight:700; cursor:pointer; font-family:inherit}
   details.adv{background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px 14px; margin-top:16px}
   details.adv summary{cursor:pointer; font-weight:700; font-size:14px; color:var(--ink); list-style:none; outline:none}
@@ -1631,7 +1653,7 @@ const MODULES=[
 
 const DEF={
   skin:{tab:'today',checkins:{},used:{},notes:{},products:[],logs:[],reminders:{nightOn:false,nightTime:'22:00',maskPeriod:0,expireOn:true},aiSeed:0},
-  plan:["喝够 8 杯水 💧","通勤听一集播客 🎧","背 20 个单词 📚","完成工作最重要 3 件事 ✅","运动 30 分钟 🏃","23:30 前睡觉 😴"],
+  plan:[{id:"p_seed_1",name:"喝够 8 杯水 💧"},{id:"p_seed_2",name:"通勤听一集播客 🎧"},{id:"p_seed_3",name:"背 20 个单词 📚"},{id:"p_seed_4",name:"完成工作最重要 3 件事 ✅"},{id:"p_seed_5",name:"运动 30 分钟 🏃"},{id:"p_seed_6",name:"23:30 前睡觉 😴"}],
   fitnessHabits:[
     {t:"帕梅拉 15min 肩颈放松",v:"",part:"肩颈"},
     {t:"颈椎后缩 + 绕肩 5min",v:"",part:"肩颈"},
@@ -2013,7 +2035,7 @@ function ring(opts){
   </div>`;
 }
 function viewHome(){
-  const tasks=DB.get("plan",[]), done=DB.get("planDone",[]);
+  const tasks=DB.get("plan",[]);
   const water=DB.get("water",0);
   const log=ledgerLog();
   const mTotal=log.filter(x=>(x.date||'').startsWith(keyDate.slice(0,7))&&x.type!=='income').reduce((s,x)=>s+(+x.amount||0),0);
@@ -2030,7 +2052,7 @@ function viewHome(){
   const greet=()=>{const h=new Date().getHours();return h<6?'夜深了，早点休息 🌙':h<11?'早安，今天也要元气满满 ☀️':h<14?'午安，记得好好吃饭 🍱':h<18?'下午好，喝口水放松下 💧':h<22?'晚上好，今天也辛苦啦 🌆':'夜深了，早点休息 🌙';};
   const now=new Date();
   const hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0'), ss=String(now.getSeconds()).padStart(2,'0');
-  const planPct=tasks.length?Math.round(done.length/tasks.length*100):0;
+  const doneToday=tasks.filter(t=>(DB.get('planHist',{})[t.id]||[]).includes(keyDate)).length; const planPct=tasks.length?Math.round(doneToday/tasks.length*100):0;
   const waterPct=Math.min(100,Math.round(water/8*100));
   const streakPct=Math.min(100,Math.round(streak%30/30*100));
   const totalSpots=travel.reduce((s,t)=>s+(t.spots?t.spots.length:0),0);
@@ -2064,7 +2086,7 @@ function viewHome(){
     <div class="ring-card" onclick="setRoute('plan')">
       <div class="rc-t">📋 今日计划</div>
       ${ring({pct:planPct, color:'var(--kitty-red)', num:planPct, unit:'%'})}
-      <div class="rc-s">已完成 ${done.length}/${tasks.length}</div>
+      <div class="rc-s">已完成 ${doneToday}/${tasks.length}</div>
     </div>
     <div class="ring-card" onclick="setRoute('fitness')">
       <div class="rc-t">💧 喝水打卡</div>
@@ -2405,36 +2427,85 @@ function wxImport(){
 
 
 /* ===== views ===== */
+function dayAdd(s,delta){ const p=s.split('-'); const d=new Date(+p[0],+p[1]-1,+p[2]); d.setDate(d.getDate()+delta); const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'); return y+'-'+m+'-'+dd; }
+function migratePlanIfNeeded(){
+  let plan=DB.get('plan',null);
+  if(Array.isArray(plan) && plan.length && typeof plan[0]==='string'){
+    const old=plan.slice();
+    const oldHist=DB.get('planHist',[])||[];
+    const oldDone=DB.get('planDone',[])||[];
+    const tasks=old.map((name,i)=>({id:'p'+(Date.now())+'_'+i+'_'+Math.floor(Math.random()*9999), name:String(name)}));
+    const hist={}; const used={};
+    oldHist.forEach(h=>{ const txt=String(h.text||''); if(!txt) return; let t=tasks.find((x,j)=>x.name===txt && !used[j]); if(!t) t=tasks.find(x=>x.name===txt); if(t){ const j=tasks.indexOf(t); used[j]=true; (hist[t.id]=hist[t.id]||[]).push(h.date); } });
+    oldDone.forEach(i=>{ if(tasks[i]){ (hist[tasks[i].id]=hist[tasks[i].id]||[]).push(keyDate); } });
+    DB.set('plan',tasks); DB.set('planHist',hist); DB.set('planDone',[]);
+  }
+}
+function planTaskDone(id){ const h=DB.get('planHist',{}); return (h[id]||[]).includes(keyDate); }
+function planStreak(id){
+  const h=(DB.get('planHist',{})[id]||[]).slice().sort();
+  if(!h.length) return 0;
+  const set=new Set(h); let d=h[h.length-1]; let cnt=0;
+  while(set.has(d)){ cnt++; d=dayAdd(d,-1); if(cnt>4000) break; }
+  return cnt;
+}
+function planStats(){
+  const tasks=DB.get('plan',[]); const hist=DB.get('planHist',{}); const ym=keyDate.slice(0,7);
+  let monthDone=0; const daySet=new Set();
+  tasks.forEach(t=>{ (hist[t.id]||[]).forEach(d=>{ if(d.slice(0,7)===ym){ monthDone++; daySet.add(d); } }); });
+  let rateSum=0,rateCnt=0;
+  if(tasks.length){ const todayD=parseInt(keyDate.slice(8,10),10); for(let day=1;day<=todayD;day++){ const ds=ym+'-'+String(day).padStart(2,'0'); let done=0; tasks.forEach(t=>{ if((hist[t.id]||[]).includes(ds)) done++; }); rateSum+=done/tasks.length; rateCnt++; } }
+  const avgRate=rateCnt?Math.round(rateSum/rateCnt*100):0;
+  let perfect=0; if(tasks.length){ let d=keyDate; while(true){ let all=tasks.every(t=>(hist[t.id]||[]).includes(d)); if(!all) break; perfect++; d=dayAdd(d,-1); if(perfect>400) break; } }
+  return {monthDone, avgRate, perfect, activeDays:daySet.size};
+}
 function viewPlan(){
   def("plan");
-  const tasks=DB.get("plan",[]); const done=DB.get("planDone",[]);
-  let rows=tasks.map((t,i)=>done.includes(i)?'':`<div class="task" data-i="${i}">
-    <div class="box" onclick="togglePlan(${i})"></div>
-    <div class="txt" onclick="togglePlan(${i})">${esc(t)}</div>
-    <button class="del" onclick="delPlan(${i})">×</button></div>`).join('');
-  const hist=DB.get("planHist",[]);
-  const byDay={}; hist.forEach(h=>{(byDay[h.date]=byDay[h.date]||[]).push(h.text);});
-  const days=Object.keys(byDay).sort().reverse();
-  const histHTML=days.length?`<div class="history-sec"><div class="sec-title">📚 已完成历史（按日期折叠）</div>${days.map(d=>`
-    <div class="hist-day" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
-      <span>📅 ${d}</span><span class="cnt">${byDay[d].length} 项已完成</span><span class="arrow">▶</span></div>
-    <div class="hist-body">${byDay[d].map(t=>`<div class="row"><span class="tag">✓</span><div style="flex:1">${esc(t)}</div></div>`).join('')}</div>`).join('')}</div>`:'';
+  migratePlanIfNeeded();
+  const tasks=DB.get("plan",[]);
+  const doneToday=tasks.filter(t=>planTaskDone(t.id)).length;
+  const pct=tasks.length?Math.round(doneToday/tasks.length*100):0;
+  const rows = tasks.length ? tasks.map(t=>`<div class="task ${planTaskDone(t.id)?'done':''}" data-id="${t.id}">
+      <div class="box" onclick="togglePlan('${t.id}')">${planTaskDone(t.id)?'✓':''}</div>
+      <div class="txt" onclick="togglePlan('${t.id}')">${esc(t.name)}</div>
+      ${planStreak(t.id)>=1?`<span class="streak">🔥 连续 ${planStreak(t.id)} 天</span>`:''}
+      <button class="task-act task-edit" onclick="planEditOpen('${t.id}')">编辑</button>
+      <button class="task-act task-del" onclick="planAskDel('${t.id}')">删除</button>
+    </div>`).join('')
+    : '<p style="color:var(--ink-soft)">还没有任务，下面加一个吧～</p>';
+  const st=planStats();
   return `<div class="page-title">📋 每日计划</div><div class="page-desc">勾选完成，进度会同步到首页</div>
-    <div class="add"><input id="planIn" placeholder="添加今日待办…" onkeydown="if(event.key==='Enter')addPlan()">
-    <button onclick="addPlan()">添加</button></div>
+    <div class="add"><input id="planIn" placeholder="添加今日待办…" onkeydown="if(event.key==='Enter')addPlan()"><button onclick="addPlan()">添加</button></div>
     <div class="sec-title">Today · ${keyDate}</div>
-    <div id="planList">${rows||'<p style="color:var(--ink-soft)">还没有任务，下面加一个吧～</p>'}</div>
-    <div class="hist-scroll">${histHTML}</div>`;
+    <div class="plan-progress"><div class="pp-bar"><div class="pp-fill" style="width:${pct}%"></div></div><div class="pp-num">已完成 ${doneToday}/${tasks.length}</div></div>
+    <div id="planList">${rows}</div>
+    <div class="plan-stats" onclick="this.classList.toggle('open')">
+      <div class="ps-head">📊 本月统计 <span class="ps-arrow">▶</span></div>
+      <div class="ps-body">
+        <div class="ps-item"><b>${st.monthDone}</b><span>本月完成次数</span></div>
+        <div class="ps-item"><b>${st.avgRate}%</b><span>平均每日完成率</span></div>
+        <div class="ps-item"><b>${st.perfect} 天</b><span>连续全完成打卡</span></div>
+      </div>
+    </div>`;
 }
-function togglePlan(i){
-  let d=DB.get("planDone",[]); let h=DB.get("planHist",[]); const tasks=DB.get("plan",[]);
-  if(d.includes(i)){ d=d.filter(x=>x!==i); const ti=tasks[i]; const idx=h.map(x=>x.text).lastIndexOf(ti); if(idx>=0)h.splice(idx,1); }
-  else { d.push(i); h.push({text:tasks[i],date:keyDate}); }
-  DB.set("planDone",d); DB.set("planHist",h); refreshPlan();
+function togglePlan(id){
+  const h=DB.get('planHist',{}); const arr=h[id]||[];
+  const i=arr.indexOf(keyDate);
+  if(i>=0) arr.splice(i,1); else arr.push(keyDate);
+  h[id]=arr; DB.set('planHist',h); refreshPlan();
 }
-function delPlan(i){let t=DB.get("plan",[]),d=DB.get("planDone",[]);t.splice(i,1);d=d.filter(x=>x!==i);DB.set("plan",t);DB.set("planDone",d);refreshPlan();}
-function addPlan(){const v=document.getElementById('planIn').value.trim();if(!v)return;let t=DB.get("plan",[]);t.push(v);DB.set("plan",t);document.getElementById('planIn').value='';refreshPlan();}
+function delPlan(id){
+  let t=DB.get('plan',[]); t=t.filter(x=>x.id!==id); DB.set('plan',t);
+  const h=DB.get('planHist',{}); delete h[id]; DB.set('planHist',h);
+  refreshPlan();
+}
+function addPlan(){const v=document.getElementById('planIn').value.trim();if(!v)return;const t=DB.get('plan',[]);t.push({id:'p'+Date.now()+'_'+Math.floor(Math.random()*9999),name:v});DB.set('plan',t);document.getElementById('planIn').value='';refreshPlan();}
 function refreshPlan(){ setRoute('plan'); }
+function planEditOpen(id){ const t=DB.get('plan',[]).find(x=>x.id===id); if(!t) return; openSheet(`<div class="page-title">编辑任务</div><div class="add" style="margin-top:10px"><input id="planEditIn" value="${esc(t.name)}"><button onclick="planEditSave('${id}')">保存</button></div>`); setTimeout(()=>{const e=document.getElementById('planEditIn'); if(e) e.focus();},300); }
+function planEditSave(id){ const v=document.getElementById('planEditIn').value.trim(); if(!v) return; const t=DB.get('plan',[]); const x=t.find(z=>z.id===id); if(!x) return; x.name=v; DB.set('plan',t); closeSheet(); refreshPlan(); }
+function planAskDel(id){ const t=DB.get('plan',[]).find(x=>x.id===id); if(!t) return; openSheet(`<div class="page-title">删除任务？</div><p style="color:var(--ink-soft);margin:10px 0 16px">确定删除「${esc(t.name)}」吗？删除后不再每日显示（历史完成记录保留）。</p><div class="add"><button class="btn-danger" onclick="planDelConfirm('${id}')">确认删除</button><button onclick="closeSheet()">取消</button></div>`); }
+function planDelConfirm(id){ closeSheet(); delPlan(id); }
+
 
 const FIT_PARTS=['全部','肩颈','背部','腰腹','臀腿','全身','有氧','体态'];
 let fitPartNow='全部';
@@ -4083,7 +4154,7 @@ function viewReport(){
   const all=DB.all();
   const log=ledgerLog();
   const body=bodyLog();
-  const planHist=DB.get("planHist",[]);
+  const planTasks=DB.get("plan",[]); const planHist=DB.get("planHist",{});
   const sparks=DB.get("spark",[]).map(normalizeSpark);
   const travel=DB.get("travel",DEF.travel);
   const kaka=DB.get("kaka",DEF.kaka);
@@ -4105,8 +4176,8 @@ function viewReport(){
   }
   
   // 各模块数据统计
-  const planDone=planHist.filter(h=>h.date>=startDate&&h.date<=endDate).length;
-  const planDaily=planHist.filter(h=>h.date===keyDate).length;
+  let planDone=0; planTasks.forEach(t=>{ (planHist[t.id]||[]).forEach(d=>{ if(d>=startDate&&d<=endDate) planDone++; }); });
+  const planDaily=planTasks.filter(t=>(planHist[t.id]||[]).includes(keyDate)).length;
   const mExp=log.filter(x=>(x.date||'')>=startDate&&(x.date||'')<=endDate&&x.type!=='income').reduce((s,x)=>s+(+x.amount||0),0);
   const mInc=log.filter(x=>(x.date||'')>=startDate&&(x.date||'')<=endDate&&x.type==='income').reduce((s,x)=>s+(+x.amount||0),0);
   const mExpCount=log.filter(x=>(x.date||'')>=startDate&&(x.date||'')<=endDate&&x.type!=='income').length;
@@ -4246,8 +4317,8 @@ function globalSearch(query){
   const results=[];
   const all=DB.all();
   // plan
-  (DB.get("plan",[])||[]).forEach((t,i)=>{ if(String(t).toLowerCase().includes(q)) results.push({mod:'plan',modIc:'📋',modName:'每日计划',title:String(t),route:'plan',sub:'待办'}) });
-  DB.get("planHist",[]).forEach(h=>{ if(String(h.text).toLowerCase().includes(q)) results.push({mod:'plan',modIc:'📋',modName:'每日计划',title:String(h.text),route:'plan',sub:'已完成 '+h.date}) });
+  (DB.get("plan",[])||[]).forEach(t=>{ if(String(t.name).toLowerCase().includes(q)) results.push({mod:'plan',modIc:'📋',modName:'每日计划',title:String(t.name),route:'plan',sub:'待办'}) });
+  { const ph=DB.get('planHist',{}); const pt=DB.get('plan',[]); Object.keys(ph).forEach(id=>{ const t=pt.find(x=>x.id===id); const nm=t?t.name:id; (ph[id]||[]).forEach(d=>{ if(String(d).toLowerCase().includes(q)||String(nm).toLowerCase().includes(q)) results.push({mod:'plan',modIc:'📋',modName:'每日计划',title:nm,route:'plan',sub:'已完成 '+d}); }); }); }
   // spark
   DB.get("spark",[]).map(normalizeSpark).forEach(s=>{ if((s.t||'').toLowerCase().includes(q)) results.push({mod:'spark',modIc:'✨',modName:'灵光一现',title:s.t,route:'spark',sub:s.cat}) });
   // recipe
@@ -4426,8 +4497,8 @@ function startReminders(){
   setInterval(()=>{
     if(!notifEnabled) return;
     const tasks=DB.get("plan",[]);
-    const done=DB.get("planDone",[]);
-    const remaining=tasks.length-done.length;
+    const doneToday=tasks.filter(t=>(DB.get('planHist',{})[t.id]||[]).includes(keyDate)).length;
+    const remaining=tasks.length-doneToday;
     if(remaining>0){
       const h=new Date().getHours();
       if(h>=18){ sendNotif('📋 今日待办提醒','还有 '+remaining+' 项未完成，加油！'); }

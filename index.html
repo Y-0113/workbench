@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260827b';
+  var WB_VER='20260827c';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -1925,7 +1925,7 @@ function applySnapshot(d){
     const cloudV=m.v, cloudM=m.m||{};
     const localV=DB.all(), localM=DB.mtimes();
     const merged=Object.assign({}, localV);
-    for(const k in cloudV){ if((cloudM[k]||0) >= (localM[k]||0)){ merged[k]=cloudV[k]; } }
+    for(const k in cloudV){ if((cloudM[k]||0) > (localM[k]||0)){ merged[k]=cloudV[k]; } }
     localStorage.setItem(DB.key, JSON.stringify(merged));
     if(m.m){
       const mergedM=Object.assign({}, localM);
@@ -1943,14 +1943,14 @@ function applySnapshot(d){
   if(changed && typeof setRoute==='function') setRoute(currentRoute);
 }
 /* 拉取并按 mtime 合并：不直接覆盖，对每个分区取较新者 */
-async function cloudPull(force){
+async function cloudPull(force,silent){
   const code=syncCode();
   try{
     const r=await fetch(CLOUD_BASE+encodeURIComponent(cloudKey(code)),{cache:'no-store'});
     const t=await r.text();
-    if(!t.trim()){ setNet('on','已连接 · 云端'); return 'empty'; }
+    if(!t.trim()){ if(!silent) setNet('on','已连接 · 云端'); return 'empty'; }
     const j=JSON.parse(t);
-    if(!j || !j.payload){ setNet('on','已连接 · 云端'); return 'empty'; }
+    if(!j || !j.payload){ if(!silent) setNet('on','已连接 · 云端'); return 'empty'; }
     const d=j.payload||{};
     const localTs=Number(localStorage.getItem('sync_local_ts')||0);
     const cloudTs=Number(j.updated_at||0);
@@ -1958,16 +1958,16 @@ async function cloudPull(force){
       applySnapshot(d);
       localStorage.setItem('sync_local_ts', String(Math.max(cloudTs, Math.floor(Date.now()/1000))));
     }
-    setNet('on');
+    if(!silent) setNet('on');
     return true;
-  }catch(e){ setNet('off'); return false; }
+  }catch(e){ if(!silent) setNet('off'); return false; }
 }
-async function cloudPush(){
+async function cloudPush(silent){
   const code=syncCode();
   try{
     setNet('busy');
     const body=JSON.stringify({payload:snapshot(),updated_at:Math.floor(Date.now()/1000)});
-    if(body.length>CLOUD_MAX_CHARS){ setNet('off'); if(!window._sizeWarned){ window._sizeWarned=1; alert('数据快到云端容量上限了(20万字符),请在设置里导出备份一份!'); } return; }
+    if(body.length>CLOUD_MAX_CHARS){ setNet('off'); if(!silent && !window._sizeWarned){ window._sizeWarned=1; alert('数据快到云端容量上限了(20万字符),请在设置里导出备份一份!'); } return; }
     const r=await fetch(CLOUD_BASE+'update',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({key:cloudKey(code),value:body})});
     const j=await r.json();
     if(!j.status){ setNet('off'); return; }
@@ -1991,7 +1991,7 @@ function startAutoPull(){
     if(!SYNC_READY) return;
     if(document.hidden) return;   /* 标签不可见时不打扰 */
     if(SYNC_PENDING) return;      /* 本地有改动待 push，先不打断 */
-    await cloudPull(false);
+    await cloudPull(false,true);
   }, SYNC_PULL_INTERVAL);
 }
 function setAutoPull(on){
@@ -2016,6 +2016,7 @@ function copySyncCode(){
 }
 function netStateText(){ const t=document.getElementById('netTxt'); return t?t.textContent:'未连接'; }
 async function syncStart(){
+  const code=syncCode();
   try{
     const r=await fetch(CLOUD_BASE+encodeURIComponent(cloudKey(code)),{cache:'no-store'});
     if(!r.ok) throw 0;
@@ -2024,7 +2025,7 @@ async function syncStart(){
     if(res==='empty'){ await cloudPush(); }
     SYNC_READY=true;
     startAutoPull();
-  }catch(e){ setNet('off'); SYNC_READY=true; startAutoPull(); }
+  }catch(e){ setNet('off'); SYNC_READY=true; /* 不启动自动轮询,等待手动触发或刷新重试;但允许 scheduleSync 继续工作 */ }
 }
 
 

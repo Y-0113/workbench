@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260826f';
+  var WB_VER='20260827a';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -691,6 +691,13 @@
 .nce-w b{display:block;font-size:14px;color:var(--kitty-red)}
 .nce-w span{font-size:12px;color:var(--ink-soft)}
 .nce-s{background:#fff7df;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
+.speak-click,.nce-w[data-spk],.nce-s[data-spk]{cursor:pointer;-webkit-touch-callout:none;user-select:none;transition:transform .15s,box-shadow .15s,outline-color .15s}
+.speak-on{outline:2px solid var(--kitty-pink);outline-offset:2px;box-shadow:0 0 0 4px rgba(232,139,158,.22);transform:scale(1.05);position:relative;z-index:2}
+.speak-on::after{content:'\1F50A';position:absolute;top:-10px;right:-10px;font-size:15px;animation:spkPulse .8s ease-in-out infinite}
+@keyframes spkPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:.7}}
+.spk-menu{display:none;position:fixed;z-index:9999;background:#fff;border:2px solid var(--kitty-pink);border-radius:12px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:140px}
+.spk-menu-item{padding:9px 12px;font-size:14px;border-radius:8px;cursor:pointer}
+.spk-menu-item:hover{background:var(--bg-pink)}
 
 /* ===== 雅思增强 ===== */
 .ielts-block{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
@@ -1792,7 +1799,7 @@ function setRoute(id){
   renderNav(); renderDock(); highlightNav(id);
   applyKittyImgs();  // 自动填 Hello Kitty 主题图
   window.scrollTo(0,0);
-  if(id==='english') setTimeout(renderNCE,0);
+  if(id==='english'){ setTimeout(renderNCE,0); initSpeak(); }
   if(id==='recipe') setTimeout(rcBindImgPreview,0);
   if(id==='travel') setTimeout(initTravelEarth,80);
   if(id==='market') setTimeout(mktStartTimers,0);
@@ -2544,7 +2551,7 @@ function tgFit(i){let d=DB.get("fitnessDone",[]);d.includes(i)?d=d.filter(x=>x!=
 function viewEnglish(){
   const streak=DB.get("enStreak",0); const todayDone=DB.get("enToday",false); const d=dialog;
   return `<div class="page-title"><img class="kitty-page-icon" data-img="book" src="" alt=""> 英语学习</div><div class="page-desc">生活口语 · 新概念第一册 · 练习小游戏</div>
-    <div class="word"><div class="en">${esc(d.en)}</div>
+    <div class="word speak-click" data-spk="${escAttr(d.en)}"><div class="en">${esc(d.en)}</div>
       <div class="cn">${esc(d.cn)}</div>
       <span class="pill">${esc(d.scene)}</span></div>
     <div class="pill">🔥 连续打卡 ${streak} 天</div>
@@ -2591,8 +2598,8 @@ const NCE=[
 function renderNCE(){
   const i=+document.getElementById('nceSel').value; const l=NCE[i]; const done=DB.get("engDone",[]);
   const learned=done.includes(l.lesson);
-  const words=l.words.map(w=>`<div class="nce-w"><b>${esc(w.en)}</b><span>${esc(w.cn)}</span></div>`).join('');
-  const sents=l.sent.map(s=>`<div class="nce-s">${esc(s)}</div>`).join('');
+  const words=l.words.map(w=>`<div class="nce-w" data-spk="${escAttr(w.en)}"><b>${esc(w.en)}</b><span>${esc(w.cn)}</span></div>`).join('');
+  const sents=l.sent.map(s=>`<div class="nce-s" data-spk="${escAttr(s)}">${esc(s)}</div>`).join('');
   document.getElementById('nceBox').innerHTML=`
     <div class="nce-head">Lesson ${l.lesson} ${learned?'<span class="pill" style="background:#e0f7d6;color:#5a9e3a">已学 ✓</span>':''}
       <button class="wear-btn ${learned?'on':''}" onclick="toggleNCE(${l.lesson})">${learned?'已学':'标记已学'}</button></div>
@@ -2603,7 +2610,55 @@ function toggleNCE(lesson){ let d=DB.get("engDone",[]); d.includes(lesson)?d=d.f
 let engQ=0,engScore=0,engCur=null,engType='cn2en';
 function engPool(){ const p=[]; NCE.forEach(l=>l.words.forEach(w=>p.push(w))); return p; }
 function engStart(type){ engType=type; engQ=0; engScore=0; engNext(); }
-function speak(t){ try{ const u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=.9; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} }
+function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let _spkInit=false,_spkLongFired=false;
+function speak(t,el,rate){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    document.querySelectorAll('.speak-on').forEach(n=>n.classList.remove('speak-on'));
+    const u=new SpeechSynthesisUtterance(t);
+    u.lang='en-US';
+    u.rate=rate||0.9;
+    if(el){ el.classList.add('speak-on'); u.onend=()=>el.classList.remove('speak-on'); u.onerror=()=>el.classList.remove('speak-on'); }
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function showSpkMenu(el){
+  _spkLongFired=true;
+  const txt=el.getAttribute('data-spk');
+  let m=document.getElementById('spkMenu');
+  if(!m){ m=document.createElement('div'); m.id='spkMenu'; m.className='spk-menu'; document.body.appendChild(m);
+    document.addEventListener('click',ev=>{ if(m.style.display==='block' && !m.contains(ev.target) && !ev.target.closest('.nce-w')) m.style.display='none'; }); }
+  m.innerHTML='';
+  const o1=document.createElement('div'); o1.className='spk-menu-item'; o1.textContent='\uD83D\uDD0A 正常速度'; o1.onclick=()=>{ m.style.display='none'; speak(txt,el,0.9); };
+  const o2=document.createElement('div'); o2.className='spk-menu-item'; o2.textContent='\uD83E\uDD8A 慢速 0.7×'; o2.onclick=()=>{ m.style.display='none'; speak(txt,el,0.7); };
+  m.appendChild(o1); m.appendChild(o2);
+  const r=el.getBoundingClientRect();
+  m.style.display='block';
+  m.style.left=Math.max(8,Math.min(r.left,window.innerWidth-160))+'px';
+  m.style.top=(r.bottom+6)+'px';
+  setTimeout(()=>{ _spkLongFired=false; },80);
+}
+function initSpeak(){
+  if(_spkInit) return; _spkInit=true;
+  document.addEventListener('click',e=>{
+    if(_spkLongFired) return;
+    const el=e.target.closest('[data-spk]');
+    if(!el) return;
+    const txt=el.getAttribute('data-spk');
+    if(txt) speak(txt,el,0.9);
+  });
+  let lpTimer=null;
+  document.addEventListener('pointerdown',e=>{
+    const el=e.target.closest('.nce-w'); if(!el) return;
+    lpTimer=setTimeout(()=>{ showSpkMenu(el); },500);
+  },{passive:true});
+  const clearLp=()=>{ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } };
+  document.addEventListener('pointermove',clearLp,{passive:true});
+  document.addEventListener('pointerup',clearLp,{passive:true});
+  document.addEventListener('pointercancel',clearLp,{passive:true});
+}
 function engNext(){
   const box=document.getElementById('engGame'); if(!box) return;
   if(engType==='order'){

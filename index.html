@@ -16,7 +16,7 @@
 <script>
 /* 版本刷新:发现缓存版本号不一致时自动刷新一次,确保用户拿到最新部署 */
 (function(){
-  var WB_VER='20260827f';
+  var WB_VER='20260827g';
   try{
     if(localStorage.getItem('_wb_ver')!==WB_VER){
       localStorage.setItem('_wb_ver',WB_VER);
@@ -2072,7 +2072,7 @@ async function ghPull(force,silent){
   }catch(e){ if(!silent) setNet('off'); return false; }
 }
 /* 保存并启用 / 停用 GitHub 同步 */
-function ghSave(){
+async function ghSave(){
   const v=(document.getElementById('ghToken').value||'').trim();
   if(!v){
     localStorage.removeItem('gh_token');
@@ -2084,8 +2084,12 @@ function ghSave(){
   localStorage.setItem('gh_token', v);
   localStorage.setItem('gh_enabled','1');
   SYNC_READY=false;
-  syncStart();  /* 先从仓库拉取(若无则把本地上传) */
-  alert('GitHub 同步已启用！正在从仓库恢复数据…\n之后所有改动会自动同步到你的 GitHub 仓库。');
+  const ok=await syncStart();  /* 先从仓库拉取(若无则把本地上传) */
+  if(ok){
+    alert('GitHub 同步已启用 ✓\n数据已从你的仓库恢复，之后改动会自动同步。');
+  }else{
+    alert('已保存令牌，但连不上仓库 ⚠️\n请确认：① 令牌是 ghp_ 开头、且有该仓库的 repo 权限\n② 手机网络能访问 github.com\n可先点「测试连接」再试。');
+  }
   setRoute('settings');
 }
 async function ghTest(){
@@ -2138,10 +2142,12 @@ function netStateText(){ const t=document.getElementById('netTxt'); return t?t.t
 async function syncStart(){
   try{
     const res=await cloudPull(false);
+    if(res===false) return false;       /* 拉取失败(令牌错/网络不通),让调用方提示 */
     if(res==='empty'){ await cloudPush(); }
     SYNC_READY=true;
     startAutoPull();
-  }catch(e){ setNet('off'); SYNC_READY=true; /* 不启动自动轮询,等待手动触发或刷新重试;但允许 scheduleSync 继续工作 */ }
+    return true;
+  }catch(e){ setNet('off'); SYNC_READY=true; return false; }
 }
 
 
@@ -2424,7 +2430,7 @@ function viewSettings(){
     <h3>🐙 GitHub 同步（推荐）</h3>
     <p style="font-size:12px;color:var(--ink-soft);margin-bottom:12px">比旧云端更稳：数据存在你自己的 GitHub 仓库，<b>容量大（约 70 万字符，约 3.5 倍）</b>、<b>不会被自动删除</b>。只需填一个 GitHub 访问令牌（只给这台设备用）。</p>
     <div class="form-row"><label>GitHub 访问令牌 (Token)</label>
-      <input id="ghToken" type="password" placeholder="ghp_ 开头的那串" value="${esc(ghToken())}">
+      <input id="ghToken" type="password" placeholder="ghp_ 开头的那串" value="${esc(ghToken())}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="add" style="display:block;gap:10px">
       <button class="btn ${ghEnabled()?'btn-pink':'btn-soft'}" id="ghSaveBtn" style="flex:1" onclick="ghSave()">${ghEnabled()?'✅ 已启用 · 点此停用':'💾 保存并启用'}</button>
